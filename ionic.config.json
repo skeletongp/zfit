@@ -1,0 +1,7 @@
+{
+  "name": "Zfit",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
