@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-weight: 400;
+  src: local('Roboto Condensed Regular'), local('RobotoCondensed-Regular'),
+    url('@/assets/fonts/RobotoCondensed-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Concert One';
+  src: local('Concert One Regular'), local('ConcertOne-Regular'),
+    url('@/assets/fonts/ConcertOne-Regular.ttf') format('truetype');
+}
+
+
+* {
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+.font-concert{
+  font-family: 'Concert One', sans-serif;
+}
+
+.ion-no-padding {
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.calendar-month-grid {
+
+  height: 80rem !important;
+  background-color: red !important;
+}
+
+.ant-image-preview-img-wrapper {
+  position: relative !important;
+  height: 100vh !important;
+  z-index: 6500 !important;
+}
+
+.ant-image-preview-img {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  margin: auto;
+  max-width: 90% !important;
+
+}
+
+ion-searchbar {
+  --box-shadow: none !important;
+}
+
+
+
+ion-avatar {
+  @apply w-[2.5rem] h-[2.5rem] flex items-center justify-center;
+
+}
+.card-bg {
+  background-image: url('@/assets/bg-card.png');
+  @apply bg-cover;
+
+}
+
+
+.ellipsis {
+
+  @apply overflow-hidden;
+  @apply whitespace-nowrap;
+  @apply overflow-ellipsis;
+}
+
+.ant-popover,
+.ant-select-dropdown {
+  z-index: 99999 !important;
+}
+.ant-select-selector{
+  @apply !bg-transparent;
+}
+::-webkit-outer-spin-button,
+::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ant-tabs-tab {
+  padding: 0px !important;
+}
+
+.ant-input-group-addon:first-child {
+  @apply font-bold;
+  @apply uppercase;
+  @apply text-xs;
+  @apply text-gray-300;
+
+}
+
+.ant-input-group input {
+  @apply border-l-0;
+  @apply text-right !important;
+  @apply px-1;
+}
+
+.ant-tree-title {
+  @apply ellipsis;
+}
+
+.ant-tree-treenode {
+  @apply ellipsis;
+}
+
+.ant-image-preview-img-wrapper {
+  position: relative !important;
+  height: 100vh !important;
+  z-index: 6500 !important;
+}
+
+.ant-image-preview-img {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  margin: auto;
+
+}
+
+.text-sky {
+  color: #00B4FF !important;
+}
+
+.bg-sky {
+  background: #00B4FF !important;
+}
+
+input[type="date"]:required:invalid::-webkit-datetime-edit {
+  color: transparent;
+}
+
+input[type="date"]:focus::-webkit-datetime-edit {
+  color: black !important;
+}
+
+.sc-ion-input-md-h:not(.legacy-input) {
+  @apply  !min-h-fit;
+}
+
+.native-wrapper {
+  padding: 5px 11px !important;
+  font-size: 16px !important;
+}
+
+
+
+.swiper .swiper-slide{
+  @apply !flex !relative !text-left !text-sm;
+}
+
+
+.ion-page{
+  @apply !bg-white;
+}
+ion-header ion-toolbar:first-of-type{
+  @apply !p-0;
+}
+
+.alert-button:nth-child(1){
+  @apply  !text-red-400;
+}
+.alert-button:nth-child(2){
+  @apply  !text-contrast;
+}
