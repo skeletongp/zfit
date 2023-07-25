@@ -7,7 +7,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const userRole = (role) => {
   const userStore = useUserStore();
   const currentRole = userStore.getUser?.role;
-  console.log(currentRole)
   if (!Array.isArray(role)) {
     role = [role];
   }
@@ -20,3 +19,4 @@ const userRole = (role) => {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export { supabase, userRole };
+export default supabase;

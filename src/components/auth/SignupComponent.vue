@@ -27,7 +27,7 @@
             <a-input
               size="large"
               class="bg-transparent text-white rounded-xl py-2"
-              type="name"
+              type="text"
               v-model:value="user.name"
               placeholder="Nombre Completo"
             />
@@ -76,28 +76,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
-import * as mdi from "@mdi/js";
-import { supabase } from "@/utils/supabase";
 import { useRouter } from "vue-router";
-import { message } from "ant-design-vue";
-import { alertController } from "@ionic/vue";
+import { useSignup } from "@/utils/auth";
+
+const { user, rules, isOpen, onModalDidPresent, handleSignup } = useSignup();
 const router = useRouter();
-const rules = [
-  {
-    required: true,
-    message: "El campo es obligatorio",
-  },
-];
-
-const user = reactive({
-  email: "",
-  password: "",
-  password_confirmation: "",
-  name: "",
-});
-
-const isOpen = ref(false);
 
 const openModal = () => {
   isOpen.value = true;
@@ -109,70 +92,5 @@ const closeModal = () => {
 
 const onModalDidDismiss = () => {
   isOpen.value = false;
-};
-
-const onModalDidPresent = () => {
-  user.email = "";
-  user.password = "";
-  user.password_confirmation = "";
-  user.name = "";
-  isOpen.value = true;
-};
-const handleSignup = async () => {
-  try {
-    if (user.password !== user.password_confirmation) {
-      message.error("Las contraseñas no coinciden");
-      return;
-    }
-    const role = user.email == "contrerasismael0@gmail.com" ? "admin" : "user";
-    let { data, error } = await supabase.auth.signUp({
-      email: user.email,
-      password: user.password,
-      role:role
-    });
-    if (error) {
-      message.error("Error al crear cuenta");
-      return;
-    }
-    const newUser = data.user;
-
-    const profile = await supabase.from("profiles").insert([
-      {
-        user_id: newUser.id,
-        name: user.name,
-        role: role
-      },
-    ]);
-    if (profile.error) {
-      message.error("Error al crear cuenta");
-      return;
-    }
-    const contact = await supabase.from("contacts").insert([
-      {
-        user_id: newUser.id,
-        name: "Email",
-        url: "mailto:" + user.email,
-        username: user.email,
-        icon: "mailOpenOutline",
-      },
-    ]);
-    if (contact.error) {
-      message.error("Error al crear cuenta");
-      return;
-    }
-    alertSuccess("Hemos enviado un correo de confirmación a tu cuenta");
-  } catch (error) {
-    message.error(error.error_description || error.message);
-  }
-};
-
-const alertSuccess = async (message) => {
-  closeModal();
-  const alert = await alertController.create({
-    header: "¡Cuenta Creada!",
-    message,
-    buttons: ["OK"],
-  });
-  await alert.present();
 };
 </script>

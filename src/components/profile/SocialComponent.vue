@@ -51,11 +51,17 @@
         />
       </a-form-item>
     </a-form>
-    <ion-button fill="clear" style="--color: #FFE024" class="absolute top-8 right-0 z-20" @click="isShow = !isShow">
+    <ion-button
+      v-if="isMyProfile"
+      fill="clear"
+      style="--color: #ffe024"
+      class="absolute top-8 right-0 z-20"
+      @click="isShow = !isShow"
+    >
       <ion-icon :icon="isShow ? icon.closeCircleOutline : icon.addCircle" />
     </ion-button>
   </div>
-  <ion-list v-if="socials.length > 0" :key="socials.length+'list'">
+  <ion-list v-if="socials.length > 0" :key="socials.length + 'list'">
     <template v-for="social in socials" :key="social.id">
       <ion-popover
         v-if="social.name != 'Email'"
@@ -109,8 +115,9 @@ import { providers, validate } from "@/vars/socialVars";
 import { message } from "ant-design-vue";
 import { presentConfirm } from "@/utils/helper";
 const socials = ref([]);
-
+const userStore = useUserStore();
 const isShow = ref(false);
+
 const rules = [{ required: true, message: "Campo requerido" }];
 const newSocial = reactive({
   name: null,
@@ -119,7 +126,16 @@ const newSocial = reactive({
   url: "",
 });
 
-const userStore = useUserStore();
+const props = defineProps({
+  user: {
+    type: Object,
+    required: true,
+  },
+  isMyProfile:{
+    type: Boolean,
+    default: false,
+  }
+});
 
 const storeSocial = async () => {
   const isValid = validate(newSocial.name, newSocial.username);
@@ -129,7 +145,7 @@ const storeSocial = async () => {
   }
   const contact = await supabase.from("contacts").insert([
     {
-      user_id: userStore.getUser.id,
+      user_id: props.user.id,
       name: newSocial.label,
       url: newSocial.url + newSocial.username,
       username: newSocial.username,
@@ -166,7 +182,6 @@ const deleteSocial = async (id) => {
           return;
         }
         message.success("Cuenta removida exitosamente");
-        console.log(data)
         await getSocials();
       },
     },
@@ -177,9 +192,9 @@ const getSocials = async () => {
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
-    .eq("user_id", userStore.getUser.id);
+    .eq("profile_id", props.user.id);
   if (error) {
-    console.log(error);
+    return;
   } else {
     socials.value = data;
   }

@@ -1,6 +1,3 @@
-import SvgIcon from "@/components/SvgIcon.vue";
-import PhotoChooser from "@/components/PhotoChooser.vue";
-import { Swiper, SwiperSlide } from 'swiper/vue';
 
 import {
   IonApp,
@@ -75,7 +72,6 @@ import {
 
 function addComponent(app) {
   app.component("IonApp", IonApp);
-  app.component("SvgIcon", SvgIcon);
   app.component("IonPage", IonPage);
   app.component("IonHeader", IonHeader);
   app.component("IonToolbar", IonToolbar);
@@ -144,9 +140,6 @@ function addComponent(app) {
   app.component("IonSplitPane", IonSplitPane);
   app.component("IonCheckbox", IonCheckbox);
 
-  app.component("PhotoChooser", PhotoChooser);
-  app.component("SwiperBody", Swiper);
-  app.component("SwiperSlide", SwiperSlide);
  
 }
 

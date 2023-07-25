@@ -3,56 +3,56 @@ const routes = [
   {
     name: "home",
     title: "Inicio",
-    path: "/",
+    path: "home",
     icon: icon.mdiHomeOutline,
     role: ["user", "admin", "client"],
   },
   {
     name: "routines",
     title: "Rutinas",
-    path: "/pages/routines",
+    path: "routines",
     icon: icon.mdiDumbbell,
     role: ["user", "admin", "client"],
   },
   {
     name: "food",
     title: "Dieta",
-    path: "/pages/food",
+    path: "food",
     icon: icon.mdiFoodOutline,
     role: ["admin", "client"],
   },
   {
     name: "gallery",
     title: "Galería",
-    path: "/pages/gallery",
+    path: "gallery",
     icon: icon.mdiMultimedia,
     role: ["user", "admin", "client"],
   },
   {
     name: "appointments",
     title: "Planes",
-    path: "/pages/appointments",
+    path: "appointments",
     icon: icon.mdiCalendarClockOutline,
     role: ["admin", "client"],
   },
   {
     name: "chat",
     title: "Mensajes",
-    path: "/pages/chat",
+    path: "chat",
     icon: icon.mdiChatOutline,
     role:['admin','client']
   },
   {
     name:'users',
     title:'Usuarios',
-    path:'path/users',
+    path:'users',
     icon:icon.mdiAccountMultipleOutline,
     role:['admin']
   },
   {
     name:'finance',
     title:'Finanzas',
-    path:'path/finance',
+    path:'pages/finance',
     icon:icon.mdiCash,
     role:['admin']
   },
@@ -63,13 +63,13 @@ const routes2 = [
   {
     name: "profile",
     title: "Perfil",
-    path: "/pages/profile",
+    path: "profile",
     icon: icon.mdiAccountOutline,
   },
   {
     name: "settings",
     title: "Ajustes",
-    path: "/pages/settings",
+    path: "settings",
     icon: icon.mdiCogStopOutline,
   },
 ];

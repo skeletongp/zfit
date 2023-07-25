@@ -1,5 +1,5 @@
 <template>
-  <ion-list class="px-4">
+  <ion-list class="px-4" v-if="loading">
     <ion-list-header>
       <ion-skeleton-text
         :animated="true"
@@ -32,17 +32,22 @@
       </ion-label>
     </ion-item>
   </ion-list>
+  <div
+    v-else
+    class="h-[20rem] w-full flex flex-col space-y-2 justify-center items-center"
+  >
+    <img src="@/assets/not_found.png" alt="Empty" class="h-[12rem]" />
+    <div class="text-xl tb:text-2xl font-bold text-gray-300">SIN RESULTADOS</div>
+  </div>
 </template>
 
-<script>
-import { defineComponent, ref, onMounted, onUnmounted } from "vue";
+<script setup>
+import { ref, onMounted, onUnmounted } from "vue";
+const loading = ref(true);
 
-export default defineComponent({
-  name: "ClientCard",
-  components: {},
-
-  setup(props, context) {
-    return {};
-  },
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = false;
+  }, 1500);
 });
 </script>

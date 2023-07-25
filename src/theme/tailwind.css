@@ -20,7 +20,13 @@
   font-family: 'Roboto Condensed', sans-serif;
 }
 
-.font-concert{
+*,
+::after,
+::before {
+  --tw-ring-color: #fff;
+}
+
+.font-concert {
   font-family: 'Concert One', sans-serif;
 }
 
@@ -68,6 +74,7 @@ ion-avatar {
   @apply w-[2.5rem] h-[2.5rem] flex items-center justify-center;
 
 }
+
 .card-bg {
   background-image: url('@/assets/bg-card.png');
   @apply bg-cover;
@@ -86,9 +93,11 @@ ion-avatar {
 .ant-select-dropdown {
   z-index: 99999 !important;
 }
-.ant-select-selector{
-  @apply !bg-transparent;
+
+.ant-select-selector {
+  @apply  !bg-transparent;
 }
+
 ::-webkit-outer-spin-button,
 ::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -164,21 +173,27 @@ input[type="date"]:focus::-webkit-datetime-edit {
 
 
 
-.swiper .swiper-slide{
-  @apply !flex !relative !text-left !text-sm;
+.swiper .swiper-slide {
+  @apply  !flex !relative !text-left !text-sm;
 }
 
 
-.ion-page{
-  @apply !bg-white;
-}
-ion-header ion-toolbar:first-of-type{
-  @apply !p-0;
+.ion-page {
+  @apply  !bg-white;
 }
 
-.alert-button:nth-child(1){
+ion-header ion-toolbar:first-of-type {
+  @apply  !p-0;
+}
+
+ion-spinner.sc-ion-loading-md{
+ @apply text-contrast
+}
+
+.alert-button:nth-child(1) {
   @apply  !text-red-400;
 }
-.alert-button:nth-child(2){
+
+.alert-button:nth-child(2) {
   @apply  !text-contrast;
 }

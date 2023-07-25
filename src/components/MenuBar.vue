@@ -33,7 +33,7 @@
         <ion-content class="ion-padding">
           <ion-list id="inbox-list">
             <template v-for="(r, i) in routes" :key="i + 'menu'">
-              <ion-nav-link :router-link="r.path" v-if="$userRole(r.role)">
+              <ion-nav-link :router-link="`/pages/${r.path}`" v-if="$userRole(r.role)">
                 <ion-menu-toggle :auto-hide="false">
                   <ion-item lines="none" :detail="false" class="hydrated">
                     <svg-icon :path="r.icon" fill="rgb(255, 224, 36, .5)" />
@@ -72,7 +72,7 @@
         </ion-content>
       </ion-menu>
       <ion-page id="main-content">
-        <ion-header>
+        <ion-header class="bg-primary">
           <ion-toolbar>
             <ion-buttons slot="start">
               <ion-menu-button></ion-menu-button>
@@ -91,35 +91,39 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { onIonViewDidEnter } from "@ionic/vue";
 import "@/theme/menu.css";
 import { routes, routes2 } from "@/vars/menuRoutes";
 import { logOutOutline } from "ionicons/icons";
 import { supabase, userRole } from "@/utils/supabase";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useUserStore, useGeneralStore } from "@/store";
 
 const userStore = useUserStore();
 var user = reactive({});
 const router = useRouter();
+const route = useRoute();
 const menuController = ref(null);
 
 const logOut = async () => {
   await supabase.auth.signOut();
+  localStorage.removeItem("zfitLoggedUser");
   router.push({ name: "auth" });
 };
 
-const checkRole = async (role) => {
-  return userRole(role);
-};
-
-onIonViewDidEnter(() => {
-  console.log(menuController.value);
-  menuController.value.close;
-});
+onIonViewDidEnter(() => {});
 onMounted(async () => {
   user = userStore.getUser || {};
 });
+
+watch(
+  () => route.fullPath,
+  () => {
+    console.log(menuController.value);
+    menuController.value.close;
+  },
+  { deep: true }
+);
 </script>
 e

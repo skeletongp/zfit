@@ -1,10 +1,10 @@
 import { alertController } from "@ionic/vue";
-
+import { loadingController } from "@ionic/vue";
 const presentConfirm = async (
   header,
   subheader = "",
   message = "",
-  buttons = ["Ok"],
+  buttons = ["Ok"]
 ) => {
   const alert = await alertController.create({
     header: header,
@@ -16,4 +16,32 @@ const presentConfirm = async (
   await alert.present();
 };
 
-export { presentConfirm };
+const pageRange = (page, perpage) => {
+  const from = (page - 1) * perpage;
+  const to = perpage * page - 1;
+  return [from, to];
+};
+
+const pathToFile = async (path) => {
+  const file = await fetch(path);
+  const blob = await file.blob();
+  const fileBlob = new File([blob], "image.jpg", { type: "image/jpeg" });
+  return fileBlob;
+};
+const loading = async (state = true, message = "Cargando...") => {
+  try {
+    //check if loading is already present
+    const loadingElement = document.querySelector("ion-loading");
+    if (loadingElement ) {
+      loadingElement.dismiss();
+    } else if(state) {
+      const loading = await loadingController.create({
+        message,
+        duration: 0,
+      });
+      loading.present();
+    }
+  } catch (error) {}
+};
+
+export { presentConfirm, pageRange, pathToFile, loading };

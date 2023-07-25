@@ -1,6 +1,6 @@
 const head = `<svg
 data-position="head"
-class="head"
+class="head part"
 xmlns="http://www.w3.org/2000/svg"
 width="56.594"
 height="95.031"
@@ -14,7 +14,7 @@ viewBox="0 0 56.594 95.031"
 const shoulder = `
 <svg
 data-position="shoulder"
-class="shoulder"
+class="shoulder part"
 xmlns="http://www.w3.org/2000/svg"
 width="109.532"
 height="46.594"
@@ -27,7 +27,7 @@ viewBox="0 0 109.532 46.594"
 
 const arm = `<svg
         data-position="arm"
-        class="arm"
+        class="arm part"
         xmlns="http://www.w3.org/2000/svg"
         width="156.344"
         height="119.25"
@@ -40,7 +40,7 @@ const arm = `<svg
 
 const cheast = `<svg
         data-position="cheast"
-        class="cheast"
+        class="cheast part"
         xmlns="http://www.w3.org/2000/svg"
         width="86.594"
         height="45.063"
@@ -52,7 +52,7 @@ const cheast = `<svg
       </svg>`;
 const stomach = `<svg
         data-position="stomach"
-        class="stomach"
+        class="stomach part"
         xmlns="http://www.w3.org/2000/svg"
         width="75.25"
         height="107.594"
@@ -65,7 +65,7 @@ const stomach = `<svg
 
 const legs = `<svg
         data-position="legs"
-        class="legs"
+        class="legs part"
         xmlns="http://www.w3.org/2000/svg"
         width="93.626"
         height="286.625"
@@ -77,7 +77,7 @@ const legs = `<svg
       </svg>`;
 const hands = `<svg
         data-position="hands"
-        class="hands"
+        class="hands part"
         xmlns="http://www.w3.org/2000/svg"
         width="205"
         height="38.938"
@@ -88,6 +88,45 @@ const hands = `<svg
         />
       </svg>`;
 
+const cota = `
+      <line
+          x1="8%"
+          y1="0"
+          x2="25%"
+          y2="0"
+          stroke="black"
+          stroke-width="2"
+          class="cota"
+        />
+        <line
+          x1="8%"
+          y1="0"
+          x2="8%"
+          y2="58%"
+          stroke="black"
+          stroke-width="2"
+          class="cota"
+        />
+
+        <line
+          x1="8%"
+          y1="62%"
+          x2="8%"
+          y2="100%"
+          stroke="black"
+          stroke-width="2"
+          class="cota"
+        />
+        <line
+          x1="8%"
+          y1="100%"
+          x2="25%"
+          y2="100%"
+          stroke="black"
+          stroke-width="2"
+          class="cota"
+        />`;
+
 const body = {
   head,
   shoulder,
@@ -96,6 +135,7 @@ const body = {
   stomach,
   legs,
   hands,
+  cota
 };
 
 export default body;

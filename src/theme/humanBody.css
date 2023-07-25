@@ -1,10 +1,10 @@
 .human-body {
-    width: 207px;
+    width: 210px;
     position: relative;
-    padding-top: 240px;
-    height: 260px;
-    display: block;
+    height: 480px;
     transform: scale(0.8);
+    margin-left: -11px;
+    margin-top: -17px;
 }
 
 .human-body svg:hover {
@@ -15,7 +15,7 @@
     fill: #FFE024;
 }
 
-.human-body svg {
+.human-body svg.part {
     position: absolute;
     left: 50%;
     fill: #FFFFFF;
@@ -57,17 +57,14 @@
     top: 224px;
 }
 
-#area {
-    display: block;
-    width: 100%;
-    clear: both;
-    padding: 10px;
-    text-align: center;
-    font-size: 25px;
-    font-family: Courier New;
-    color: #a5a5a5;
+
+.cota {
+    stroke: #FFE024;
 }
 
-#area #data {
-    color: #FFE024;
+.cota-text {
+    fill: #FFFFFF;
+    font-size: 12px;
+    text-anchor: start;
+    dominant-baseline: middle;
 }

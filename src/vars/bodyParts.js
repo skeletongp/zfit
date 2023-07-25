@@ -1,5 +1,11 @@
 const parts = [
     {
+      key: "body",
+      name: "weight",
+      value: 0,
+      label:'Peso'
+    },
+    {
       key: "head",
       name: "cuello",
       value: 0,

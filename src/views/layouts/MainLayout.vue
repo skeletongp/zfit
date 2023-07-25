@@ -1,6 +1,5 @@
 <template>
-    <MenuBar />
- 
+  <MenuBar />
 </template>
 
 <script setup>

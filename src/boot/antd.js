@@ -17,6 +17,7 @@ import {
     SubMenu,
     Progress,
     RangePicker,
+    DatePicker,
     Drawer,
     Textarea,
     Form,
@@ -45,6 +46,7 @@ import {
     app.component(Textarea.name, Textarea);
     app.component(Form.name, Form);
     app.component(FormItem.name, FormItem);
+    app.component(DatePicker.name, DatePicker);
   
     app.config.globalProperties.$message = message;
   }

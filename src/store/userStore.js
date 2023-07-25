@@ -5,7 +5,7 @@ export const useUserStore = defineStore("user", {
   }),
   getters: {
     getUser() {
-      return this.user;
+      return JSON.parse(localStorage.getItem('zfitLoggedUser'));
     },
   },
   actions: {

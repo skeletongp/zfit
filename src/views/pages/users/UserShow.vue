@@ -19,6 +19,7 @@
             {{ user.email }}
           </h1>
         </div>
+
         <!-- Stats -->
         <div class="grid grid-cols-3 items-center gap-1 mt-4">
           <div class="relative w-full h-20 flex flex-col justify-center items-center">
@@ -38,7 +39,7 @@
         </div>
         <hr class="border-contrast mb-1" />
         <!-- Segments -->
-        <ion-segment v-model="viewOpen" >
+        <ion-segment v-model="viewOpen">
           <ion-segment-button value="body" :class="{ active: isActive('body') }">
             <ion-icon :icon="icon.bodyOutline"></ion-icon>
           </ion-segment-button>
@@ -48,22 +49,27 @@
           <ion-segment-button value="evals" :class="{ active: isActive('evals') }">
             <ion-icon :icon="icon.scaleOutline"></ion-icon>
           </ion-segment-button>
-          <ion-segment-button value="saved" :class="{ active: isActive('saved') }">
-            <ion-icon :icon="icon.bookmarkOutline"></ion-icon>
+          <ion-segment-button value="edit" :class="{ active: isActive('edit') }">
+            <ion-icon :icon="icon.settingsOutline"></ion-icon>
           </ion-segment-button>
         </ion-segment>
 
         <!-- Body -->
-        <div v-if="viewOpen == 'body'">
+        <div v-if="viewOpen == 'body'" class="w-full h-full">
           <BodyComponent :user="user" />
         </div>
         <!-- Socials -->
-        <div v-else-if="viewOpen == 'socials'">
-          <SocialComponent :user="user" :isMyProfile="true" />
+        <div v-else-if="viewOpen == 'socials'" class="w-full h-full">
+          <SocialComponent :user="user" />
         </div>
         <!-- Evals -->
-        <div v-else-if="viewOpen == 'evals'">
-          <UserEvals :user="user" :isMyProfile="true" />
+        <div v-else-if="viewOpen == 'evals'" class="w-full h-full">
+          <UserEvals :user="user" />
+          <AddEval :user="user" />
+        </div>
+         <!-- Evals -->
+         <div v-else-if="viewOpen == 'edit'" class="w-full h-full">
+          <EditUser :user="user" />
         </div>
       </div>
     </ion-content>
@@ -71,11 +77,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onBeforeMount } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useUserStore, useGeneralStore } from "@/store";
 import BodyComponent from "@/components/profile/BodyComponent.vue";
 import SocialComponent from "@/components/profile/SocialComponent.vue";
 import UserEvals from "@/components/profile/UserEvals.vue";
+import AddEval from "@/components/profile/AddEval.vue";
+import EditUser from "@/components/profile/EditUser.vue";
 import { useRoute, useRouter } from "vue-router";
 import { supabase } from "@/utils/supabase";
 import { message } from "ant-design-vue";
@@ -86,27 +94,26 @@ const router = useRouter();
 var user = reactive({});
 const viewOpen = ref(null);
 const key=ref(0);
+
 const isActive = (view) => {
   return viewOpen.value === view;
 };
 
 const getUser = async () => {
-  const userStore = useUserStore();
-  const id = userStore.getUser.profile_id;
+  const id = route.params.id;
   const { data, error } = await supabase
     .from("profiles")
     .select("*,contacts(*)")
     .eq("id", id)
     .single();
   if (error) {
-    message.error("No se puedo obtener información");
+    message.error("No se pudo obtener información");
     router.push({ name: "users" });
   }
   user = data;
   user.email = data?.contacts[0].username;
   viewOpen.value = "body";
 };
-
 
 const getWeight = async () => {
   const { data, error } = await supabase
@@ -121,7 +128,7 @@ const getWeight = async () => {
   if (data?.measures?.length > 0) {
     user.weight = parseFloat(data.measures[0].value);
     const imc = parseFloat(user.weight) / Math.pow(parseFloat(user.height/100), 2);
-    user.imc = imc.toFixed(2);
+    user.imc = imc.toFixed(1);
     console.log(user)
   }
 };
@@ -136,8 +143,7 @@ const imcStatus=(imc)=>{
     return "Obesidad";
   }
 }
-
-onBeforeMount(async () => {
+onMounted(async () => {
   await getUser();
   await getWeight();
   key.value=new Date().getTime();

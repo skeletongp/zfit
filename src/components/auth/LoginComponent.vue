@@ -12,12 +12,14 @@
     :is-open="isOpen"
     @ionModalDidDismiss="onModalDidDismiss"
     @ionModalDidPresent="onModalDidPresent"
-    :initial-breakpoint="0.4"
-    :breakpoints="[0.4]"
+    :initial-breakpoint="0.45"
+    :breakpoints="[0.45]"
   >
     <ion-content>
-      <div class="w-full max-w-sm mx-auto h-[40vh] px-6 flex items-center">
-        <a-form :model="user" @finish="handleLogin" name="login" class="w-full space-y-8">
+      <div
+        class="w-full max-w-sm mx-auto h-[40vh] px-6 flex flex-col justify-center items-end"
+      >
+        <a-form :model="user" @finish="onLogin" name="login" class="w-full">
           <a-form-item
             name="email"
             :rules="[{ required: true, message: 'Debe Ingresar su Correo' }]"
@@ -39,13 +41,9 @@
               class="bg-transparent text-white rounded-xl py-2"
               type="password"
               v-model:value="user.password"
+              @pressEnter="onLogin"
               placeholder="Contraseña"
             />
-            <div class="w-full flex justify-end p-2">
-              <ion-checkbox v-model="user.remember" :checked="user.remember">
-                <span class="text-white">Recuérdame</span>
-              </ion-checkbox>
-            </div>
           </a-form-item>
 
           <ion-button
@@ -59,25 +57,22 @@
             Iniciar Sesión
           </ion-button>
         </a-form>
+        <div class="w-full flex justify-end px-2 mt-8">
+          <ion-checkbox v-model="user.remember" :checked="user.remember">
+            <span class="text-white">Recuérdame</span>
+          </ion-checkbox>
+        </div>
       </div>
     </ion-content>
   </ion-modal>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
-import * as mdi from "@mdi/js";
-import { supabase } from "@/utils/supabase";
 import { useRouter } from "vue-router";
-import { message } from "ant-design-vue";
-const router = useRouter();
-const user = reactive({
-  email: "",
-  password: "",
-  remember: false,
-});
+import { useLogin } from "@/utils/auth";
 
-const isOpen = ref(false);
+const { user, isOpen, onModalDidPresent, handleLogin } = useLogin();
+const router = useRouter();
 
 const openModal = () => {
   isOpen.value = true;
@@ -91,44 +86,11 @@ const onModalDidDismiss = () => {
   isOpen.value = false;
 };
 
-const onModalDidPresent = () => {
-  user.email = "";
-  user.password = "";
-  const oldUser = JSON.parse(localStorage.getItem("zfitUser"));
-  if (oldUser) {
-    user.email = oldUser.email;
-    user.password = oldUser.password;
-    user.remember = oldUser.remember;
-  }
-  isOpen.value = true;
-};
-
-const handleLogin = async () => {
-  try {
-    let { data, error } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: user.password,
-    });
-    if (error) {
-      if (error.message.includes("not confirmed")) {
-        message.error("Debe confirmar su correo electrónico");
-        return;
-      }
-      message.error("Error al iniciar sesión");
-      return;
-    }
-    message.success("Sesión iniciada correctamente");
-    if (user.remember) {
-      localStorage.setItem("zfitUser", JSON.stringify(user));
-    } else{
-      localStorage.removeItem("zfitUser");
-    }
+const onLogin = async () => {
+  const res = await handleLogin();
+  if (res) {
     closeModal();
-
     router.push({ name: "home" });
-    window.location.reload();
-  } catch (error) {
-    message.error(error.error_description || error.message);
   }
 };
 </script>
