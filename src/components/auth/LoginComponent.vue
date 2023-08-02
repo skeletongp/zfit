@@ -12,13 +12,11 @@
     :is-open="isOpen"
     @ionModalDidDismiss="onModalDidDismiss"
     @ionModalDidPresent="onModalDidPresent"
-    :initial-breakpoint="0.45"
-    :breakpoints="[0.45]"
+    :initial-breakpoint="0.35"
+    :breakpoints="[0.35]"
   >
     <ion-content>
-      <div
-        class="w-full max-w-sm mx-auto h-[40vh] px-6 flex flex-col justify-center items-end"
-      >
+      <div class="w-full max-w-sm mx-auto h-[35vh] p-6 flex flex-col">
         <a-form :model="user" @finish="onLogin" name="login" class="w-full">
           <a-form-item
             name="email"

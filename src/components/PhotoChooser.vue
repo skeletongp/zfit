@@ -16,12 +16,12 @@
 <script setup>
 import { ref, onBeforeMount, onMounted, watch } from "vue";
 import { Camera, CameraResultType } from "@capacitor/camera";
-import { supabase } from "@/utils/supabase";
+import { upload } from "@/utils/parse";
 import moment from "moment";
 const props = defineProps({
   folder: {
     type: String,
-    default: "agio",
+    default: "zfit",
   },
   prevPhoto: {
     type: String,
@@ -33,7 +33,6 @@ const emit = defineEmits(["onPhoto"]);
 
 const showButton = ref(false);
 const photo = ref("");
-const file = ref(null);
 const openFileChooser = ref(false);
 
 const takePhoto = async () => {
@@ -47,33 +46,15 @@ const takePhoto = async () => {
       source: "Camera",
     });
     photo.value = photoInstance.webPath;
-    const fileInstance = await pathToFile(photo.value);
-    await uploadImage(fileInstance);
+    const name = moment().unix().toString();
+    photo.value = await upload(photoInstance.webPath, name);
+    emit("onPhoto", photo.value);
     showButton.value = false;
   } catch (error) {
     console.log(error);
   }
 };
 
-const uploadImage = async (file) => {
-  const now = moment().unix();
-  const name = props.folder + now;
-
-  const { data, error } = await supabase.storage.from("agio_storage").upload(name, file);
-  if (error) {
-    console.log(error);
-  } else {
-    const res = await supabase.storage.from("agio_storage").getPublicUrl(name);
-    emit("onPhoto", res.publicURL);
-  }
-};
-
-const pathToFile = async (path) => {
-  const file = await fetch(path);
-  const blob = await file.blob();
-  const fileBlob = new File([blob], "image.jpg", { type: "image/jpeg" });
-  return fileBlob;
-};
 const onModalDidPresent = async () => {
   await takePhoto();
 };

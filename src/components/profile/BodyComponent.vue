@@ -47,6 +47,7 @@ const getData = async () => {
       .select("*, measures(*)")
       .eq("profile_id", props.user.id)
       .order("id", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (error) {

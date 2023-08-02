@@ -5,15 +5,15 @@ import { alertController, loadingController } from "@ionic/vue";
 
 export function useLogin() {
   const user = reactive({
-    email: "",
-    password: "",
+    email: null,
+    password: null,
     remember: false,
   });
   const isOpen = ref(false);
 
   const onModalDidPresent = () => {
-    user.email = "";
-    user.password = "";
+    user.email = null;
+    user.password = null;
     const oldUser = JSON.parse(localStorage.getItem("zfitUser"));
     if (oldUser) {
       user.email = oldUser.email;
@@ -68,18 +68,18 @@ export function useSignup() {
   ];
 
   const user = reactive({
-    email: "",
-    password: "",
-    password_confirmation: "",
-    name: "",
+    email: null,
+    password: null,
+    password_confirmation: null,
+    name: null,
   });
 
   const isOpen = ref(false);
   const onModalDidPresent = () => {
-    user.email = "";
-    user.password = "";
-    user.password_confirmation = "";
-    user.name = "";
+    user.email = null;
+    user.password = null;
+    user.password_confirmation = null;
+    user.name = null;
     isOpen.value = true;
   };
 
@@ -91,7 +91,7 @@ export function useSignup() {
       }
       const loading=await showLoading();
       const role =
-        user.email == "contrerasismael0@gmail.com" ? "admin" : "user";
+        user.email == import.meta.env.VITE_TEST_EMAIL ? "admin" : "user";
       let { data, error } = await supabase.auth.signUp({
         email: user.email,
         password: user.password,
@@ -103,7 +103,7 @@ export function useSignup() {
         return;
       }
       const newUser = data.user;
-    const res=  await supabase.rpc("create_profile_and_contact",{
+    const res=  await supabase.rpc("create_user_and_contact",{
         name:user.name,
         email: user.email,
         password: user.password,
@@ -118,7 +118,9 @@ export function useSignup() {
      
       alertSuccess("Hemos enviado un correo de confirmación a tu cuenta");
       loading.dismiss();
+      return true;
     } catch (error) {
+      console.log(error)
       message.error(error.error_description || error.message);
     }
   };
@@ -144,7 +146,7 @@ const showLoading = async () => {
 };
 const getUser = async () => {
   const user = {};
-  const allowedRoles = ["user", "admin", "client"];
+  const allowedRoles = ["user", "admin", "client", "trainer"];
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -152,10 +154,11 @@ const getUser = async () => {
     user.id = session.user.id;
     user.email = session.user.email;
     const profile = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+    .from("user")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
     user.address = profile.data?.address;
     user.name = profile.data?.name;
     user.birthdate = profile.data?.birthdate;
@@ -168,6 +171,7 @@ const getUser = async () => {
     if (!allowedRoles.includes(user.role)) {
       user.role = "user";
     }
+
     localStorage.setItem("zfitLoggedUser", JSON.stringify(user));
   }
 };

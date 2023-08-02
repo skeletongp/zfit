@@ -2,7 +2,7 @@ import { ref, reactive } from "vue";
 import supabase from "@/utils/supabase";
 import { getPagination } from "@/utils/parse";
 import { message } from "ant-design-vue";
-import {  loadingController } from "@ionic/vue";
+import { loadingController } from "@ionic/vue";
 
 export function useQuery(table = "none") {
   const params = reactive({
@@ -10,11 +10,12 @@ export function useQuery(table = "none") {
     perPage: 10,
     search: "",
     orderBy: "id",
-    ascend: false,
-    limit: 100,
+    ascend: true,
+    limit: 0,
     cols: "*",
     paginate: false,
-    searchables: "",
+    searchables: null,
+    filters:[],
   });
 
   const getData = async () => {
@@ -22,16 +23,23 @@ export function useQuery(table = "none") {
     let instance = supabase
       .from(table)
       .select(params.cols)
-      .order(params.orderBy, { ascending: params.ascend })
-      .limit(params.limit);
-    if (params.search) {
+      .order(params.orderBy||'id', { ascending: params.ascend })
+      
+    if (params.search && params.searchables) {
       instance = search(instance, params.searchables, params.search);
     }
-    if (params.paginate) {
+    if (params.paginate && !params.limit) {
       instance = instance.range(from, to);
     }
+    if(params.limit && !params.paginate){
+      instance = instance.limit(params.limit||0);
+    }
+    if(params.filters && params.filters.length>0){
+      params.filters.map((filt)=>{
+        instance=instance.eq(filt.key,filt.value )
+      })
+    }
     instance = await instance;
-
     return instance;
   };
 
@@ -46,7 +54,7 @@ export function useQuery(table = "none") {
   };
 
   const saveData = async (values) => {
-    const loading=await showLoading();
+    const loading = await showLoading();
     const { data, error } = await supabase.from(table).insert(values).select();
     message.config({
       top: "200px",
@@ -62,37 +70,39 @@ export function useQuery(table = "none") {
     }
   };
   const updateData = async (values) => {
-    const loading=await showLoading();
+    const loading = await showLoading();
     const { data, error } = await supabase
       .from(table)
       .update(values)
       .eq("id", values.id)
       .select();
-      message.config({
-        top: "200px",
+    message.config({
+      top: "200px",
     });
     if (error) {
       message.error("Ha ocurrido un error con la actualización");
-        loading.dismiss();
-        return false;
-      } else {
-        message.success("Datos actualizados exitosamente");
-        loading.dismiss();
+      loading.dismiss();
+      return false;
+    } else {
+      message.success("Datos actualizados exitosamente");
+      loading.dismiss();
       return data;
     }
   };
   const search = (instance, cols, query) => {
     let stm = "";
+   if(query.length>1){
     const columns = cols.split(",");
     const textcols = query.split(" ");
     textcols.forEach((text) => {
-      if(text && text!=' ' && text.length>1){
+      if (text && text != " " && text.length > 1) {
         columns.forEach((col) => {
           stm += `${col}.ilike.%${text}%,`;
         });
       }
     });
     instance = instance.or(stm.slice(0, -1));
+   }
     return instance;
   };
 
@@ -110,7 +120,7 @@ export function useQuery(table = "none") {
 
 const showLoading = async () => {
   const loading = await loadingController.create({
-    message: 'Cargando...',
+    message: "Cargando...",
   });
 
   loading.present();

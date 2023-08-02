@@ -41,6 +41,7 @@
                   size="large"
                   class="bg-transparent text-white rounded-xl"
                   type="number"
+                  step="0.01"
                   v-model:value="measure.value"
                   placeholder="Valor"
                 />
@@ -94,7 +95,7 @@
             :key="index + 'photo'"
           >
             <div class="absolute top-1 right-1 z-50">
-              <ion-button class="ion-no-padding" size="small" @click="removePhoto(index)" >
+              <ion-button class="ion-no-padding" size="small" @click="removePhoto(index)">
                 <ion-icon :icon="icon.closeOutline" />
               </ion-button>
             </div>
@@ -160,7 +161,6 @@ const setPhotos = (newPhotos) => {
   newPhotos.forEach((photo) => {
     photos.value.push(photo);
   });
-  
 };
 
 const removePhoto = (index) => {

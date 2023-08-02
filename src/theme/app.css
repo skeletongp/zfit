@@ -19,4 +19,5 @@
 
 @import 'swiper/css';
 @import 'ant-design-vue/dist/antd.dark.css';
+@import '@vueup/vue-quill/dist/vue-quill.snow.css';
 @import '@/theme/tailwind.css';

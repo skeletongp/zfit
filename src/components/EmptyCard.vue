@@ -48,6 +48,6 @@ const loading = ref(true);
 onMounted(() => {
   setTimeout(() => {
     loading.value = false;
-  }, 1500);
+  }, 3500);
 });
 </script>

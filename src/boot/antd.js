@@ -21,7 +21,9 @@ import {
     Drawer,
     Textarea,
     Form,
-    FormItem
+    FormItem,
+    Slider,
+    AutoComplete
   } from "ant-design-vue";
   
   function antd(app) {
@@ -47,6 +49,8 @@ import {
     app.component(Form.name, Form);
     app.component(FormItem.name, FormItem);
     app.component(DatePicker.name, DatePicker);
+    app.component(Slider.name, Slider);
+    app.component(AutoComplete.name, AutoComplete);
   
     app.config.globalProperties.$message = message;
   }

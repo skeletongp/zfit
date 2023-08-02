@@ -49,13 +49,36 @@ const routes = [
             title: "Detalle de Usuario",
           },
         },
+
+        /* Routines */
         {
             path: "routines/",
             name: "routines",
             component: () => import("@/views/pages/routines/RoutinePage.vue"),
             meta: {
               requiresAuth: true,
-              title: "Rutinas y Consejos",
+              title: "Rutinas ",
+            },
+          },
+          {
+            path: "routines/new",
+            name: "_new_routine",
+            component: () => import("@/views/pages/routines/NewRoutine.vue"),
+            meta: {
+              requiresAuth: true,
+              title: "Crear Rutina",
+              requireRole:'admin',
+            },
+          },
+
+          /* Foods */
+          {
+            path: "foods/",
+            name: "foods",
+            component: () => import("@/views/pages/foods/FoodPage.vue"),
+            meta: {
+              requiresAuth: true,
+              title: "Alimentos ",
             },
           },
       ],

@@ -5,6 +5,29 @@
 </template>
 
 <script setup>
-import { ref, reactive, onBeforeMount } from "vue";
+import { useBackButton } from "@ionic/vue";
+import { App } from "@capacitor/app";
+import { ref, reactive, onMounted } from "vue";
+import { message } from "ant-design-vue";
+import supabase from "@/utils/supabase";
 
+var pressed = 0;
+useBackButton(10, () => {
+  pressed++;
+  if (pressed == 1) {
+    message.warning("Presione nuevamente para salir");
+    setTimeout(() => {
+      pressed = 0;
+    }, 2000);
+  } else {
+    App.exitApp();
+  }
+  return;
+});
+
+onMounted(async () => {
+  const result = await supabase.auth;
+
+  console.log(result);
+});
 </script>

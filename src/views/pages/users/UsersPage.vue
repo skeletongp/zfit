@@ -20,7 +20,10 @@
                 :src="user.photo || 'src/assets/no-photo.png'"
               />
             </ion-avatar>
-            <ion-nav-link class="flex flex-col  w-full" :router-link="`/pages/users/${user.id}`">
+            <ion-nav-link
+              class="flex flex-col w-full"
+              :router-link="`/pages/users/${user.id}`"
+            >
               <h1 class="uppercase font-bold text-lg">{{ user.name }}</h1>
               <h1 class="text-sm text-contrast opacity-80">
                 {{ user.contacts[0].username }}
@@ -56,8 +59,8 @@ const params = reactive({
 
 const getUsers = async (reset) => {
   var userInstance = supabase
-    .from("profiles")
-    .select("*, contacts(*)")
+    .from("auth.users")
+    .select("*, contacts(*), profile(*)")
     .order("name", { ascending: true })
     .range(...pageRange(params.page, params.perpage));
   if (params.search) {

@@ -1,7 +1,12 @@
 <template>
-  <ion-page>
-    <ion-split-pane content-id="main-content">
-      <ion-menu content-id="main-content" style="--width: 70%" ref="menuController">
+  <ion-page class="max-w-lg mx-auto">
+    <ion-split-pane content-id="main-content" :when="false">
+      <ion-menu
+        content-id="main-content"
+        type="overlay"
+        style="--width: 70%"
+        ref="menuController"
+      >
         <ion-header>
           <ion-toolbar>
             <ion-nav-link
@@ -45,7 +50,7 @@
           </ion-list>
           <ion-list id="inbox-list">
             <ion-nav-link
-              :router-link="r2.path"
+              :router-link="`/pages/${r2.path}`"
               v-for="(r2, i) in routes2"
               :key="i + 'menu2'"
             >

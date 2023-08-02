@@ -2,9 +2,9 @@ import moment from "moment/moment";
 import supabase from "./supabase";
 import { loadingController } from "@ionic/vue";
 const getPagination = (page, size) => {
-  const from = page ? (page - 1) * size : 0;
-  const to = page ? (from + size)-1 : size-1;
-
+  var from = page ? (page - 1) * size : 0;
+  var to = size ? from + size - 1 : 9;
+ 
   return { from, to };
 };
 
@@ -14,35 +14,38 @@ const filterOption = (input, option) => {
   return haystack.toLowerCase().indexOf(needle.toLowerCase()) >= 0;
 };
 
-const upload = async (file, filename) => {
-  if(typeof file=="string" && file.includes('data:')){
-    file=dataURLtoFile(file, filename);
-    
-  }
-  const name = filename;
-  await supabase.storage
-    .from("zfit_storage")
-    .upload(name, file);
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("zfit_storage").getPublicUrl(name);
-    return publicUrl;
-};
-function dataURLtoFile(dataurl, filename) {
-  var arr = dataurl.split(','),
-      mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[arr.length - 1]), 
-      n = bstr.length, 
-      u8arr = new Uint8Array(n);
-  while(n--){
-      u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new File([u8arr], filename, {type:mime});
+const onSuggest=(options, val)=>{
+  options=options.map(opt=>{return {label: opt}})
+ return options.filter(opt=>filterOption(val, opt))
 }
 
+const upload = async (filePath, name, upsert=false ) => {
+  const loading = await ionLoading();
+  var blob = filePath;
+  if(!filePath.includes('data:')){
+    blob= await getBlobFromPath(filePath);
+  }
+  const { data, error } = await supabase.storage
+    .from("zfit_storage")
+    .upload(name, blob,{
+      upsert: upsert
+    });
+  if (error) {
+    loading.dismiss();
+    return error;
+  } else {
+    loading.dismiss();
+    return import.meta.env.VITE_STORAGE_BASE_URL+name
+  }
+};
+async function getBlobFromPath(path) {
+  const response = await fetch(path);
+  const blob = await response.blob();
+  return blob
+}
 const ionLoading = async () => {
   const loading = await loadingController.create({
-    message: 'Cargando...',
+    message: "Cargando...",
   });
 
   loading.present();
@@ -56,4 +59,4 @@ const formatMoney = (number) => {
   return "$" + number.toLocaleString("en-US");
 };
 
-export { getPagination, filterOption, upload, ionLoading, formatMoney};
+export { getPagination, filterOption, onSuggest, upload, ionLoading, formatMoney };
