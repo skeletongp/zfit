@@ -55,18 +55,18 @@ export function useQuery(table = "none") {
 
   const saveData = async (values) => {
     const loading = await showLoading();
-    const { data, error } = await supabase.from(table).insert(values).select();
+    const { data, error } = await supabase.from(table).upsert(values).select();
     message.config({
       top: "200px",
     });
     if (error) {
       message.error("Ha ocurrido un error con el registro");
       loading.dismiss();
-      return false;
+      return error;
     } else {
       message.success("Datos registrados exitosamente");
       loading.dismiss();
-      return data;
+      return data[0];
     }
   };
   const updateData = async (values) => {
@@ -82,11 +82,12 @@ export function useQuery(table = "none") {
     if (error) {
       message.error("Ha ocurrido un error con la actualización");
       loading.dismiss();
-      return false;
+
+      return error;
     } else {
       message.success("Datos actualizados exitosamente");
       loading.dismiss();
-      return data;
+      return data[0];
     }
   };
   const search = (instance, cols, query) => {
@@ -105,6 +106,13 @@ export function useQuery(table = "none") {
    }
     return instance;
   };
+  const deleteData = async (key, value) => {
+    const instance = await supabase
+      .from(table)
+      .delete()
+      .eq(key, value)
+    return instance;
+  };
 
   const getUser = async () => {
     var user = null;
@@ -115,7 +123,7 @@ export function useQuery(table = "none") {
     return user || {};
   };
 
-  return { params, getData, findData, saveData, updateData };
+  return { params, getData, findData, saveData, updateData, deleteData };
 }
 
 const showLoading = async () => {

@@ -23,7 +23,7 @@
           name="signup"
           class="w-full space-y-8"
         >
-          <a-form-item name="name" :rules="rules">
+          <a-form-item name="name" :rules="rules.name">
             <a-input
               size="large"
               class="bg-transparent text-white rounded-xl py-2"
@@ -32,7 +32,7 @@
               placeholder="Nombre Completo"
             />
           </a-form-item>
-          <a-form-item name="email" :rules="rules">
+          <a-form-item name="email" :rules="rules.email">
             <a-input
               size="large"
               class="bg-transparent text-white rounded-xl py-2"
@@ -41,7 +41,7 @@
               placeholder="Correo electrónico"
             />
           </a-form-item>
-          <a-form-item name="password" :rules="rules">
+          <a-form-item name="password" :rules="rules.password">
             <a-input
               size="large"
               class="bg-transparent text-white rounded-xl py-2"
@@ -50,7 +50,7 @@
               placeholder="Contraseña"
             />
           </a-form-item>
-          <a-form-item name="password_confirmation" :rules="rules">
+          <a-form-item name="password_confirmation" :rules="rules.password_confirmation">
             <a-input
               size="large"
               class="bg-transparent text-white rounded-xl py-2"

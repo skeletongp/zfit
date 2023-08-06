@@ -68,6 +68,7 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { useLogin } from "@/utils/auth";
+import { message } from "ant-design-vue";
 
 const { user, isOpen, onModalDidPresent, handleLogin } = useLogin();
 const router = useRouter();
@@ -86,9 +87,12 @@ const onModalDidDismiss = () => {
 
 const onLogin = async () => {
   const res = await handleLogin();
-  if (res) {
+  if (res == "Bienvenido") {
+    message.success(res);
     closeModal();
     router.push({ name: "home" });
+  } else {
+    message.error(res);
   }
 };
 </script>

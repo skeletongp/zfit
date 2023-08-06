@@ -25,9 +25,5 @@ useBackButton(10, () => {
   return;
 });
 
-onMounted(async () => {
-  const result = await supabase.auth;
-
-  console.log(result);
-});
+onMounted(async () => {});
 </script>

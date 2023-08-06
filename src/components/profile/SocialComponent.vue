@@ -2,7 +2,7 @@
   <div class="relative">
     <a-form
       :model="newSocial"
-      @finish="storeSocial"
+      @finish="storeSocial(user.id)"
       name="newSocial"
       class="w-full grid grid-cols-8 gap-4 transition-all ease-in-out duration-1000"
       :class="isShow ? 'show' : 'hide'"
@@ -109,99 +109,32 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from "vue";
 import * as icon from "ionicons/icons";
-import { useUserStore } from "@/store";
-import { supabase } from "@/utils/supabase";
-import { providers, validate } from "@/vars/socialVars";
-import { message } from "ant-design-vue";
-import { presentConfirm } from "@/utils/helper";
-const socials = ref([]);
-const userStore = useUserStore();
-const isShow = ref(false);
+import { useSocial } from "@/utils/users";
 
-const rules = [{ required: true, message: "Campo requerido" }];
-const newSocial = reactive({
-  name: null,
-  icon: "",
-  username: "",
-  url: "",
-});
+const {
+  socials,
+  isShow,
+  rules,
+  newSocial,
+  storeSocial,
+  deleteSocial,
+  getSocials,
+  providers,
+} = useSocial();
 
 const props = defineProps({
   user: {
     type: Object,
     required: true,
   },
-  isMyProfile:{
+  isMyProfile: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
-const storeSocial = async () => {
-  const isValid = validate(newSocial.name, newSocial.username);
-  if (!isValid) {
-    message.error("Formato no válido");
-    return;
-  }
-  const contact = await supabase.from("contacts").insert([
-    {
-      user_id: props.user.id,
-      name: newSocial.label,
-      url: newSocial.url + newSocial.username,
-      username: newSocial.username,
-      icon: newSocial.icon,
-    },
-  ]);
-  if (contact.error) {
-    message.error("Error al crear cuenta");
-    return;
-  } else {
-    message.success("Cuenta creada");
-    await getSocials();
-    newSocial.name = null;
-    newSocial.icon = "";
-    newSocial.username = "";
-    newSocial.url = "";
-  }
-};
-
-const deleteSocial = async (id) => {
-  presentConfirm("Eliminar cuenta", "¿Desea eliminar esta cuenta?", "", [
-    {
-      text: "Cancelar",
-      handler: async () => {
-        return;
-      },
-    },
-    {
-      text: "Proceder",
-      handler: async () => {
-        const { data, error } = await supabase.from("contacts").delete().eq("id", id);
-        if (error) {
-          message.error("No se pudo remover la cuenta");
-          return;
-        }
-        message.success("Cuenta removida exitosamente");
-        await getSocials();
-      },
-    },
-  ]);
-};
-
-const getSocials = async () => {
-  const { data, error } = await supabase
-    .from("contacts")
-    .select("*")
-    .eq("profile_id", props.user.id);
-  if (error) {
-    return;
-  } else {
-    socials.value = data;
-  }
-};
-
 onMounted(async () => {
-  await getSocials();
+  await getSocials(props.user.id);
 });
 
 watch(

@@ -33,12 +33,12 @@
           </div>
           <div class="relative w-full h-20 flex flex-col justify-center items-center">
             <span class="text-xl font-bold text-white"> {{ user.imc || 0 }} IMC</span>
-            <span class="text-sm font-bold text-white"> {{imcStatus(user.imc)}} </span>
+            <span class="text-sm font-bold text-white"> {{ imcStatus(user.imc) }} </span>
           </div>
         </div>
         <hr class="border-contrast mb-1" />
         <!-- Segments -->
-        <ion-segment v-model="viewOpen" >
+        <ion-segment v-model="viewOpen">
           <ion-segment-button value="body" :class="{ active: isActive('body') }">
             <ion-icon :icon="icon.bodyOutline"></ion-icon>
           </ion-segment-button>
@@ -71,76 +71,35 @@
 </template>
 
 <script setup>
-import { ref, reactive, onBeforeMount } from "vue";
-import { useUserStore, useGeneralStore } from "@/store";
+import { ref, onBeforeMount } from "vue";
+import { useUserStore } from "@/store";
 import BodyComponent from "@/components/profile/BodyComponent.vue";
 import SocialComponent from "@/components/profile/SocialComponent.vue";
 import UserEvals from "@/components/profile/UserEvals.vue";
-import { useRoute, useRouter } from "vue-router";
-import { supabase } from "@/utils/supabase";
-import { message } from "ant-design-vue";
-import * as icon from "ionicons/icons";
 
-const route = useRoute();
-const router = useRouter();
-var user = reactive({});
+import * as icon from "ionicons/icons";
+import { useUsers } from "@/utils/users";
+
 const viewOpen = ref(null);
-const key=ref(0);
+const key = ref(0);
+const { params, user, findUser, getWeight, imcStatus } = useUsers();
+
 const isActive = (view) => {
   return viewOpen.value === view;
 };
 
 const getUser = async () => {
   const userStore = useUserStore();
-  const id = userStore.getUser.profile_id;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*,contacts(*)")
-    .eq("id", id)
-    .single();
-  if (error) {
-    message.error("No se puedo obtener información");
-    router.push({ name: "users" });
-  }
-  user = data;
-  user.email = data?.contacts[0].username;
+  const id = userStore.getUser.id;
+  params.cols = "*, contacts(*)";
+  await findUser(id);
+  await getWeight(id);
   viewOpen.value = "body";
 };
 
-
-const getWeight = async () => {
-  const { data, error } = await supabase
-    .from("evals")
-    .select("measures(*)")
-    .eq("profile_id", user.id)
-    .eq("measures.key", "body")
-    .order("id", { ascending: false })
-    .limit(1)
-    .single();
-
-  if (data?.measures?.length > 0) {
-    user.weight = parseFloat(data.measures[0].value);
-    const imc = parseFloat(user.weight) / Math.pow(parseFloat(user.height/100), 2);
-    user.imc = imc.toFixed(2);
-    console.log(user)
-  }
-};
-const imcStatus=(imc)=>{
-  if(imc<18.5){
-    return "Bajo peso";
-  }else if(imc>=18.5 && imc<=24.9){
-    return "Normal";
-  }else if(imc>=25 && imc<=29.9){
-    return "Sobrepeso";
-  }else if(imc>=30){
-    return "Obesidad";
-  }
-}
-
 onBeforeMount(async () => {
   await getUser();
-  await getWeight();
-  key.value=new Date().getTime();
+  key.value = new Date().getTime();
 });
 </script>
 

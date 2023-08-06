@@ -2,10 +2,12 @@ import { useQuery } from "../../../src/utils/query";
 import supabase from "../../../src/utils/supabase";
 
 describe("useQuery_util", async () => {
-  await supabase.auth.signInWithPassword({
-    email: import.meta.env.VITE_TEST_EMAIL,
-    password: import.meta.env.VITE_TEST_PASSWORD,
-  });
+  beforeAll(async()=>{
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+  })
   //Tests that params is initiliazed
   it("test_params", () => {
     const { params } = useQuery("users");

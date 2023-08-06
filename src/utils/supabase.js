@@ -18,5 +18,6 @@ const userRole = (role) => {
 };
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+
 export { supabase, userRole };
 export default supabase;

@@ -3,10 +3,13 @@ import supabase from "../../../src/utils/supabase";
 import validate from "../validate";
 
 describe("useFoods_function", async () => {
-  await supabase.auth.signInWithPassword({
-    email: import.meta.env.VITE_TEST_EMAIL,
-    password: import.meta.env.VITE_TEST_PASSWORD,
+  beforeAll(async () => {
+    const auth = await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
   });
+
   //Tests that params and foods is initialized
   it("test_params_and_foods", async () => {
     const { params, foods } = useFoods();
@@ -14,10 +17,9 @@ describe("useFoods_function", async () => {
     expect(foods.value).toEqual([]);
   });
 
-  //Tests that it's getting foods
-  it("test_get_foods", async () => {
-    const { params, foods, getFoods } = useFoods();
-    params.paginate = true;
+  //Tests that admin can get foods
+  it("test_admin_gets_foods", async () => {
+    const { foods, getFoods } = useFoods();
     await getFoods();
     expect(foods.value.length).toBeGreaterThan(0);
   });
@@ -31,12 +33,26 @@ describe("useFoods_function", async () => {
     expect(foods.value.length).toBeGreaterThan(0);
   });
 
+  //Tests that can filter group
+  it('test_on_filter_group', async()=>{
+    const {  foods, onFilterGroup } = useFoods();
+    await onFilterGroup('Carnes');
+    const filtered=foods.value.filter((food)=>food.group=='Carnes')
+    expect(foods.value.length).toBeGreaterThan(0);
+    expect(foods.value.length).toEqual(filtered.length);
+    await onFilterGroup(null);
+    expect(foods.value.length).toBeGreaterThan(0);
+
+  })
+
   //Tests that is ordering data
   it("test_on_order_by", async () => {
     const { params, foods, onOrderBy } = useFoods();
     params.ascend = true;
     await onOrderBy("name");
     expect(foods.value[0].name[0]).toEqual("A");
+    await onOrderBy("name");
+    expect(foods.value[0].name[0]).toEqual("Z");
   });
 
   //Tests that is paginating data
@@ -64,6 +80,16 @@ describe("useFoods_function", async () => {
 });
 
 describe("useNewFood_function", async () => {
+  const newFood = {};
+  var foodId = null;
+  beforeEach(async () => {
+    await supabase.auth.signOut();
+    newFood.name = "Arroz blanco";
+    newFood.group = "Cereales";
+    newFood.proteins = 26.4;
+    newFood.calories = 160;
+    newFood.unit = "100 g";
+  });
   //Tests that food instance is initialized
   it("test_food_has_all_properties", () => {
     const { food } = useNewFood();
@@ -123,38 +149,83 @@ describe("useNewFood_function", async () => {
   //Tests that rules validation pass
   it("test_validation_pass", async () => {
     const { food, rules } = useNewFood();
-    food.name = "Arroz blanco";
-    food.group = "Cereales";
-    food.proteins = 26.4;
-    food.calories = 160;
-    food.unit="100 g"
+    Object.assign(food, newFood);
     const result = await validate(food, rules);
     expect(result).toEqual(true);
   });
 
-  //Tests that saveFood save item in data base and restart food
-  it("test_saving_food", async () => {
+  //Tests admin can save food
+  it("test_admin_save_food", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
     const { food, saveFood } = useNewFood();
-    food.name = "Arroz blanco";
-    food.group = "Cereales";
-    food.proteins = 26.4;
-    food.calories = 160;
+    Object.assign(food, newFood);
     const res = await saveFood(food);
-    const isEmpty = Object.keys(food).every((key) => food[key] == null);
-    expect(res).toEqual(false);
-    expect(isEmpty).toEqual(false);
+    foodId = res.id;
+    expect(res.id).toBeTruthy();
   });
 
-  //Tests that saveFood save item in data base and restart food
-  it("test_updating_food", async () => {
+  //Tests trainer can save food
+  it("test_trainer_save_food", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_TRAINER_EMAIL,
+      password: import.meta.env.VITE_TRAINER_PASSWORD,
+    });
+    const { food, saveFood } = useNewFood();
+    Object.assign(food, newFood);
+    const res = await saveFood(food);
+    expect(res.id).toBeTruthy();
+  });
+
+  //Tests client can't save food
+  it("test_client_dont_save_food", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_CLIENT_EMAIL,
+      password: import.meta.env.VITE_CLIENT_PASSWORD,
+    });
+    const { food, saveFood } = useNewFood();
+    Object.assign(food, newFood);
+    const res = await saveFood(food);
+    expect(res.code).toEqual("42501");
+  });
+
+  //Tests user can't save food
+  it("test_user_dont_save_food", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_USER_EMAIL,
+      password: import.meta.env.VITE_USER_PASSWORD,
+    });
+    const { food, saveFood } = useNewFood();
+    Object.assign(food, newFood);
+    const res = await saveFood(food);
+    expect(res.code).toEqual("42501");
+  });
+
+  //Tests that admin can update food
+  it("test_admin_can_update_food", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
     const { food, updateFood } = useNewFood();
-    food.name = "Arroz blanco";
-    food.group = "Cereales";
-    food.proteins = 26.4;
-    food.calories = 160;
-    food.id = 0;
+    Object.assign(food, newFood);
+    food.id = foodId;
+    food.calories = 165;
     const res = await updateFood(food);
-    expect(res).toEqual([]);
+    expect(res.calories).toEqual(165);
+  });
+
+  //Tests that admin can delete food
+  it("test_delete_food", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    const { deleteFood } = useNewFood();
+    const res = await deleteFood(newFood.name, "name");
+    expect(res.status).toBe(204);
   });
 
   //Test that resetFood works properly

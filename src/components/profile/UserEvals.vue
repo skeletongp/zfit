@@ -25,7 +25,10 @@
       <div class="flex justify-end">
         <small class="text-contrast opacity-50"><sup>*</sup> Medidas en Kg. y Cm.</small>
       </div>
-      <div class="h-24 overflow-hidden w-full grid grid-cols-4 gap-4 py-2" v-if="photos.length > 0">
+      <div
+        class="h-24 overflow-hidden w-full grid grid-cols-4 gap-4 py-2"
+        v-if="photos.length > 0"
+      >
         <div
           class="w-full h-24 col-span-1 relative"
           v-for="(photo, index) in photos"
@@ -60,7 +63,7 @@ const getData = async () => {
   const { data, error } = await supabase
     .from("evals")
     .select("*, measures(*), evalphotos(*)")
-    .eq("profile_id", props.user.id)
+    .eq("user_id", props.user.id)
     .order("id", { ascending: false })
     .limit(45);
 

@@ -37,7 +37,6 @@ export function useFoods(paginate=true) {
     return await getFoods();
   };
   const onFilterGroup=async(val)=>{
-    console.log(val)
     if(val){
       params.filters=[{key: "group", value: val}]
     } else{
@@ -106,9 +105,15 @@ export function useNewFood() {
     return res;
   };
 
+  const deleteFood = async (value, field=id) => {
+    const { deleteData } = useQuery("foods");
+    const res = await deleteData(field, value);
+    return res;
+  };
+
   const resetFood = () => {
     Object.keys(food).forEach((key) => (food[key] = null));
   };
 
-  return { food, rules, units, groups, saveFood, resetFood, updateFood };
+  return { food, rules, units, groups, saveFood, resetFood, updateFood, deleteFood };
 }

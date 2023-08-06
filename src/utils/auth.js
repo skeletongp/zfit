@@ -14,65 +14,76 @@ export function useLogin() {
   const onModalDidPresent = () => {
     user.email = null;
     user.password = null;
-    const oldUser = JSON.parse(localStorage.getItem("zfitUser"));
-    if (oldUser) {
-      user.email = oldUser.email;
-      user.password = oldUser.password;
-      user.remember = oldUser.remember;
-    }
+    const oldUser = JSON.parse(localStorage.getItem("zfitUser"))||{};
+    user.email = oldUser.email ;
+    user.password = oldUser.password ;
+    user.remember =  oldUser.remember;
     isOpen.value = true;
   };
 
   const handleLogin = async () => {
-    try {
-      const loading=await showLoading();
-      let { data, error } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: user.password,
-      });
-      if (error) {
-        if (error.message.includes("not confirmed")) {
-          message.error("Debe confirmar su correo electrónico");
-          loading.dismiss();
-          return false;
-        }
-        message.error("Error al iniciar sesión");
-        loading.dismiss();
-        return false;
-      }
-      message.success("Sesión iniciada correctamente");
-      if (user.remember) {
-        localStorage.setItem("zfitUser", JSON.stringify(user));
-      } else {
-        localStorage.removeItem("zfitUser");
-      }
-      await getUser();
-      loading.dismiss();
-
-      return true;
-    } catch (error) {
-      message.error(error.error_description || error.message);
-      return false;
-    }
+    const loading = await showLoading();
+    let instance = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: user.password,
+    });
+    user.remember
+      ? localStorage.setItem("zfitUser", JSON.stringify(user))
+      : localStorage.removeItem("zfitUser");
+    await getUser();
+    loading.dismiss();
+    return instance.error ? instance.error.message : "Bienvenido";
   };
 
   return { user, isOpen, onModalDidPresent, handleLogin };
 }
 
 export function useSignup() {
-  const rules = [
-    {
-      required: true,
-      message: "El campo es obligatorio",
-    },
-  ];
-
   const user = reactive({
+    name: null,
     email: null,
     password: null,
     password_confirmation: null,
-    name: null,
   });
+  const validateConfirm = async (_rule, value) => {
+    if (value !== user.password) {
+      return Promise.reject("Las contraseñas no coinciden");
+    } else {
+      return Promise.resolve();
+    }
+  };
+  const rules = {
+    name: [
+      { required: true, message: "Campo requerido" },
+      { min: 5, message: "Nombre muy corto" },
+    ],
+    email: [
+      { required: true, message: "Campo requerido" },
+      { type: "email", message: "Formato inválido" },
+    ],
+    password: [
+      { required: true, message: "Campo requerido" },
+      { min: 8, message: "Mínimo 8 caracteres" },
+      {
+        pattern:
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&#_-ñÑ]{8,20}$/,
+        message: "Debe contener Mayús., Mins. y Números",
+      },
+    ],
+    password_confirmation: [
+      { required: true, message: "Campo requerido" },
+      { min: 8, message: "Mínimo 8 caracteres" },
+      {
+        pattern:
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&#_-ñÑ]{8,20}$/,
+        message: "Debe contener Mayús., Mins. y Números",
+      },
+      {
+        validator: validateConfirm,
+        trigger: "change",
+      },
+    ],
+  };
 
   const isOpen = ref(false);
   const onModalDidPresent = () => {
@@ -84,94 +95,85 @@ export function useSignup() {
   };
 
   const handleSignup = async () => {
-    try {
-      if (user.password !== user.password_confirmation) {
-        message.error("Las contraseñas no coinciden");
-        return;
-      }
-      const loading=await showLoading();
-      const role =
-        user.email == import.meta.env.VITE_TEST_EMAIL ? "admin" : "user";
-      let { data, error } = await supabase.auth.signUp({
-        email: user.email,
-        password: user.password,
-        role: role,
-      });
-      if (error) {
-        message.error("Error al crear cuenta");
-        loading.dismiss();
-        return;
-      }
-      const newUser = data.user;
-    const res=  await supabase.rpc("create_user_and_contact",{
-        name:user.name,
-        email: user.email,
-        password: user.password,
-        user_id: newUser.id,
-      })
-      console.log(res)
-      if(res.error){
-        message.error("Error al crear cuenta");
-        loading.dismiss();
-        return;
-      }
-     
-      alertSuccess("Hemos enviado un correo de confirmación a tu cuenta");
-      loading.dismiss();
-      return true;
-    } catch (error) {
-      console.log(error)
-      message.error(error.error_description || error.message);
-    }
-  };
-  const alertSuccess = async (message) => {
-    isOpen.value = false;
-    const alert = await alertController.create({
-      header: "¡Cuenta Creada!",
-      message,
-      buttons: ["OK"],
+    const loading = await showLoading();
+    let logInstance = await supabase.auth.signUp({
+      email: user.email,
+      password: user.password,
     });
-    await alert.present();
+    const allowedRoles = ["user", "admin", "client", "trainer"];
+    if (!allowedRoles.includes(user.role) || !user.role) {
+      user.role = "user";
+    }
+    const newUser = logInstance.data.user;
+    const res = await supabase.rpc("create_user_and_contact", {
+      name: user.name,
+      email: user.email,
+      role: user.role || "user",
+      user_id: newUser.id,
+    });
+
+    loading.dismiss();
+    const response =
+      newUser.identities.length == 0
+        ? {
+            message: "Este usuario ya existe",
+            status: 422,
+            error: "Existing mail",
+          }
+        : res.error
+        ? {
+            message: res.error.message,
+            status: 501,
+            error: "Error al crear usuario",
+          }
+        : logInstance.error
+        ? {
+            message: "Se ha enviado un correo de confirmación",
+            status: 200,
+            error: null,
+          }
+        : {
+            message: logInstance.error.message,
+            status: 500,
+            error: "Error al crear cuenta",
+          };
+    return response;
   };
 
   return { rules, user, isOpen, handleSignup, onModalDidPresent };
 }
 const showLoading = async () => {
   const loading = await loadingController.create({
-    message: 'Cargando...',
+    message: "Cargando...",
   });
 
   loading.present();
   return loading;
 };
-const getUser = async () => {
+export const getUser = async () => {
   const user = {};
-  const allowedRoles = ["user", "admin", "client", "trainer"];
+  
   const {
     data: { session },
   } = await supabase.auth.getSession();
   if (session?.user) {
     user.id = session.user.id;
     user.email = session.user.email;
-    const profile = await supabase
-    .from("user")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-    user.address = profile.data?.address;
-    user.name = profile.data?.name;
-    user.birthdate = profile.data?.birthdate;
-    user.photo = profile.data?.photo || "src/assets/no-photo.png";
-    user.price = profile.data?.price || 0;
-    user.start_date = profile.data?.start_date;
-    user.height = profile.data?.height;
-    user.role = profile.data?.role || "user";
-    user.profile_id = profile.data?.id;
-    if (!allowedRoles.includes(user.role)) {
-      user.role = "user";
-    }
-
+    const relatedUser = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    user.address = relatedUser.data?.address;
+    user.name = relatedUser.data?.name;
+    user.birthdate = relatedUser.data?.birthdate;
+    user.photo = relatedUser.data?.photo || "src/assets/no-photo.png";
+    user.price = relatedUser.data?.price || 0;
+    user.start_date = relatedUser.data?.start_date;
+    user.height = relatedUser.data?.height;
+    user.role = relatedUser.data?.role || "user";
+    user.relatedUser_id = relatedUser.data?.id;
+    
     localStorage.setItem("zfitLoggedUser", JSON.stringify(user));
   }
 };

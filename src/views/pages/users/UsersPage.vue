@@ -3,7 +3,7 @@
     <ion-header>
       <ion-toolbar>
         <ion-searchbar
-          debounce="300"
+          :debounce="400"
           placeholder="Buscar..."
           v-model="params.search"
           @ionInput="handleSearch"
@@ -11,7 +11,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list lines="full" class="space-y-4">
+      <ion-list lines="full" class="space-y-4" v-if="users.length > 0">
         <template v-for="user in users" key="user.id">
           <ion-item color="dark" :detail="true" class="border-b border-gray-600">
             <ion-avatar class="w-12 h-12 rounded-full" slot="start">
@@ -40,49 +40,41 @@
             </ion-nav-link>
           </ion-item>
         </template>
+        <ion-infinite-scroll v-if="users.length > 9" @ionInfinite="onPaginate">
+          <ion-infinite-scroll-content></ion-infinite-scroll-content>
+        </ion-infinite-scroll>
       </ion-list>
+      <empty-card v-else />
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from "vue";
-import { supabase } from "@/utils/supabase";
-import { message } from "ant-design-vue";
-import { pageRange } from "@/utils/helper";
-const users = ref([]);
-const params = reactive({
-  page: 1,
-  perpage: 10,
-  search: null,
-});
+import { onMounted } from "vue";
+import { useUsers } from "@/utils/users";
+const { users, params, getUsers } = useUsers();
 
-const getUsers = async (reset) => {
-  var userInstance = supabase
-    .from("auth.users")
-    .select("*, contacts(*), profile(*)")
-    .order("name", { ascending: true })
-    .range(...pageRange(params.page, params.perpage));
-  if (params.search) {
-    userInstance = userInstance.ilike("name", `%${params.search}%`);
-  }
-
-  userInstance = await userInstance;
+const getFromUsers = async (reset) => {
+  params.cols = "*, contacts(*)";
   if (reset) {
     users.value = [];
   }
-  users.value.push(...userInstance.data);
-  console.log(userInstance);
+  const userInstance = await getUsers();
 };
 
 const handleSearch = async (evt) => {
   const srch = evt.detail.value;
   params.search = srch;
-  params.page = 1;
-  await getUsers(true);
+  await getFromUsers(true);
+};
+
+const onPaginate = async (ev) => {
+  params.page = params.page + 1;
+  await getFromUsers();
+  setTimeout(() => ev.target.complete(), 500);
 };
 
 onMounted(async () => {
-  await getUsers();
+  await getFromUsers();
 });
 </script>
