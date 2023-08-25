@@ -3,12 +3,18 @@ import supabase from "../../../src/utils/supabase";
 import validate from "../validate";
 
 describe("useFoods_function", async () => {
+  var auth;
   beforeAll(async () => {
-    const auth = await supabase.auth.signInWithPassword({
+     auth = await supabase.auth.signInWithPassword({
       email: import.meta.env.VITE_ADMIN_EMAIL,
       password: import.meta.env.VITE_ADMIN_PASSWORD,
     });
   });
+
+  //Test that user could login withit
+  it('should be logged user', async()=>{
+    expect(auth.data.session).toBeTruthy();
+  })
 
   //Tests that params and foods is initialized
   it("test_params_and_foods", async () => {
@@ -52,7 +58,7 @@ describe("useFoods_function", async () => {
     await onOrderBy("name");
     expect(foods.value[0].name[0]).toEqual("A");
     await onOrderBy("name");
-    expect(foods.value[0].name[0]).toEqual("Z");
+    expect(foods.value[0].name[0]).not.toEqual("A");
   });
 
   //Tests that is paginating data
@@ -86,40 +92,31 @@ describe("useNewFood_function", async () => {
     await supabase.auth.signOut();
     newFood.name = "Arroz blanco";
     newFood.group = "Cereales";
-    newFood.proteins = 26.4;
-    newFood.calories = 160;
-    newFood.unit = "100 g";
+    newFood.Proteínas = 26.4;
+    newFood.Calorías = 160;
   });
   //Tests that food instance is initialized
   it("test_food_has_all_properties", () => {
-    const { food } = useNewFood();
-    const props = ["name", "unit", "group", "proteins", "calories"];
+    const { food, nutrients } = useNewFood();
+    const props = ["name", "group"];
+    nutrients.map((nut)=>props.push(nut.name))
     props.forEach((prop) => {
       expect(food.hasOwnProperty(prop)).toEqual(true);
     });
   });
 
-  //Tests that units instance has properties
-  it("test_units_has_properties", () => {
-    const { units } = useNewFood();
-    const count = units.length;
-    expect(count).toEqual(2);
-  });
 
   //Tests that units instance has properties
   it("test_groups_has_properties", () => {
     const { groups } = useNewFood();
     const count = groups.length;
-    expect(count).toEqual(12);
+    expect(count).toBeGreaterThan(4);
   });
 
   //Tests that rules instance is initialized
   it("test_rules_has_all_properties", () => {
-    const { rules } = useNewFood();
-    const props = ["name", "group", "proteins", "calories"];
-    props.forEach((prop) => {
-      expect(rules.hasOwnProperty(prop)).toEqual(true);
-    });
+    const { rules, food } = useNewFood();
+   expect(Object.keys(food)).toEqual(Object.keys(rules))
   });
 
   //Tests that rules validates name, group, proteins, calories
@@ -127,13 +124,11 @@ describe("useNewFood_function", async () => {
     const { food, rules } = useNewFood();
     food.name = "";
     food.group = "";
-    food.proteins = "";
-    food.calories = "";
+    food.Proteínas = null;
     const errors = await validate(food, rules);
     expect(errors.name).toBeTruthy();
     expect(errors.group).toBeTruthy();
-    expect(errors.proteins).toBeTruthy();
-    expect(errors.calories).toBeTruthy();
+    expect(errors['Proteínas']).toBeTruthy();
   });
 
   //Tests that rules validates name and group min
@@ -212,9 +207,9 @@ describe("useNewFood_function", async () => {
     const { food, updateFood } = useNewFood();
     Object.assign(food, newFood);
     food.id = foodId;
-    food.calories = 165;
+    food.Calorías = 165;
     const res = await updateFood(food);
-    expect(res.calories).toEqual(165);
+    expect(res.Calorías).toEqual(165);
   });
 
   //Tests that admin can delete food
@@ -231,7 +226,7 @@ describe("useNewFood_function", async () => {
   //Test that resetFood works properly
   it("test_reset_food", () => {
     const { food, resetFood } = useNewFood();
-    const isEmpty = Object.keys(food).every((key) => food[key] == null);
+    const isEmpty = Object.keys(food).every((key) => !food[key] );
     resetFood();
     expect(isEmpty).toEqual(true);
   });

@@ -1,7 +1,7 @@
 import { ref, reactive } from "vue";
 import { supabase } from "@/utils/supabase";
-import { message } from "ant-design-vue";
-import { alertController, loadingController } from "@ionic/vue";
+import EventBus from "@/utils/eventBus";
+import {  loadingController } from "@ionic/vue";
 
 export function useLogin() {
   const user = reactive({
@@ -173,7 +173,7 @@ export const getUser = async () => {
     user.height = relatedUser.data?.height;
     user.role = relatedUser.data?.role || "user";
     user.relatedUser_id = relatedUser.data?.id;
-    
     localStorage.setItem("zfitLoggedUser", JSON.stringify(user));
+    EventBus.emit('userChanged', user)
   }
 };

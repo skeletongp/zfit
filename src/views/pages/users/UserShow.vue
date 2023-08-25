@@ -3,13 +3,20 @@
     <ion-content :fullscreen="true" class="ion-no-padding">
       <div class="w-full h-full bg-primary p-4 flex flex-col" :key="key">
         <!-- Primary Info -->
-        <div class="w-full flex flex-col items-center">
+        <div class="w-full flex flex-col items-center relative">
+          <div class="absolute bottom-1 right-1">
+            <photo-chooser :prevPhoto="user.photo" @onPhoto="editPhotoUser">
+              <ion-icon :icon="icon.cameraOutline" class="text-xl hover:text-contrast" />
+            </photo-chooser>
+          </div>
+
           <ion-avatar
             class="mx-auto rounded-full border-2 my-1 border-contrast overflow-hidden !w-20 !h-20"
           >
-            <a-image
-              :src="user.photo || 'src/assets/no-photo.png'"
-              class="rounded-full !w-20 !h-20"
+            <image-component
+              :path="user.photo"
+              alt="profile"
+              cstClass="rounded-full !w-20 !h-20"
             />
           </ion-avatar>
           <h1 class="font-bold text-xl ellipsis w-full text-center text-white">
@@ -34,7 +41,7 @@
           </div>
           <div class="relative w-full h-20 flex flex-col justify-center items-center">
             <span class="text-xl font-bold text-white"> {{ user.imc || 0 }} IMC</span>
-            <span class="text-sm font-bold text-white"> {{imcStatus(user.imc)}} </span>
+            <span class="text-sm font-bold text-white"> {{ imcStatus(user.imc) }} </span>
           </div>
         </div>
         <hr class="border-contrast mb-1" />
@@ -50,7 +57,7 @@
             <ion-icon :icon="icon.scaleOutline"></ion-icon>
           </ion-segment-button>
           <ion-segment-button value="edit" :class="{ active: isActive('edit') }">
-            <ion-icon :icon="icon.settingsOutline"></ion-icon>
+            <ion-icon :icon="icon.optionsOutline"></ion-icon>
           </ion-segment-button>
         </ion-segment>
 
@@ -67,9 +74,9 @@
           <UserEvals :user="user" />
           <AddEval :user="user" />
         </div>
-         <!-- Evals -->
-         <div v-else-if="viewOpen == 'edit'" class="w-full h-full">
-          <EditUser :user="user" />
+        <!-- Edit -->
+        <div v-else-if="viewOpen == 'edit'" class="w-full h-full">
+          <EditUser :prev-user="user" />
         </div>
       </div>
     </ion-content>
@@ -77,77 +84,53 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
-import { useUserStore, useGeneralStore } from "@/store";
+import { ref, watch, onMounted } from "vue";
 import BodyComponent from "@/components/profile/BodyComponent.vue";
 import SocialComponent from "@/components/profile/SocialComponent.vue";
 import UserEvals from "@/components/profile/UserEvals.vue";
 import AddEval from "@/components/profile/AddEval.vue";
 import EditUser from "@/components/profile/EditUser.vue";
 import { useRoute, useRouter } from "vue-router";
-import { supabase } from "@/utils/supabase";
-import { message } from "ant-design-vue";
+import { useUsers, useEditUser } from "@/utils/users";
+
 import * as icon from "ionicons/icons";
 
+const { user, findUser, getWeight, imcStatus } = useUsers();
+const { updatePhoto, loadUser } = useEditUser();
 const route = useRoute();
-const router = useRouter();
-var user = reactive({});
 const viewOpen = ref(null);
-const key=ref(0);
+const key = ref(0);
 
 const isActive = (view) => {
   return viewOpen.value === view;
 };
 
-const getUser = async () => {
+const initialize = async () => {
   const id = route.params.id;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*,contacts(*)")
-    .eq("id", id)
-    .single();
-  if (error) {
-    message.error("No se pudo obtener información");
-    router.push({ name: "users" });
-  }
-  user = data;
-  user.email = data?.contacts[0].username;
-  viewOpen.value = "body";
+  await findUser(id);
+  await getWeight(id);
 };
-
-const getWeight = async () => {
-  const { data, error } = await supabase
-    .from("evals")
-    .select("measures(*)")
-    .eq("profile_id", user.id)
-    .eq("measures.key", "body")
-    .order("id", { ascending: false })
-    .limit(1)
-    .single();
-
-  if (data?.measures?.length > 0) {
-    user.weight = parseFloat(data.measures[0].value);
-    const imc = parseFloat(user.weight) / Math.pow(parseFloat(user.height/100), 2);
-    user.imc = imc.toFixed(1);
-    console.log(user)
-  }
+const editPhotoUser = async (photo) => {
+  await loadUser(user.value);
+  await updatePhoto(photo);
+  await initialize();
+  key.value = new Date().getTime();
 };
-const imcStatus=(imc)=>{
-  if(imc<18.5){
-    return "Bajo peso";
-  }else if(imc>=18.5 && imc<=24.9){
-    return "Normal";
-  }else if(imc>=25 && imc<=29.9){
-    return "Sobrepeso";
-  }else if(imc>=30){
-    return "Obesidad";
-  }
-}
 onMounted(async () => {
-  await getUser();
-  await getWeight();
-  key.value=new Date().getTime();
+  await initialize();
+  viewOpen.value = "body";
+  key.value = new Date().getTime();
 });
+
+watch(
+  () => viewOpen.value,
+  async () => {
+    await initialize();
+  },
+  {
+    deep: true,
+  }
+);
 </script>
 
 <style scoped>

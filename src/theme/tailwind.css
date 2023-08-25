@@ -26,6 +26,11 @@
   --tw-ring-color: #fff;
 }
 
+ion-item {
+  --min-height: 0 !important;
+  min-height: auto;
+}
+
 .font-concert {
   font-family: 'Concert One', sans-serif;
 }
@@ -47,6 +52,10 @@
   background-color: red !important;
 }
 
+.ant-image-img {
+  object-fit: cover !important;
+}
+
 .ant-image-preview-img-wrapper {
   position: relative !important;
   height: 100vh !important;
@@ -61,7 +70,27 @@
   left: 0 !important;
   margin: auto;
   max-width: 90% !important;
+  max-height: 90% !important;
 
+}
+
+.ant-form-item-explain-error{
+  @apply text-red-300;
+}
+
+ol {
+  list-style-type: decimal;
+  padding-left: 14px;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 14px;
+}
+
+ol li,
+ul li {
+  margin-bottom: 8px;
 }
 
 ion-searchbar {
@@ -186,8 +215,8 @@ ion-header ion-toolbar:first-of-type {
   @apply  !p-0;
 }
 
-ion-spinner.sc-ion-loading-md{
- @apply text-contrast
+ion-spinner.sc-ion-loading-md {
+  @apply text-contrast
 }
 
 .alert-button:nth-child(1) {

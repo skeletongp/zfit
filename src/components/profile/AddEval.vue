@@ -7,7 +7,7 @@
   <ion-modal
     :is-open="isOpen"
     @ionModalDidDismiss="onModalDidDismiss"
-    @ionModalDidPresent="onModalDidPresent"
+    @ionModalDidPresent="onModalDidPresent(user.id)"
   >
     <ion-header>
       <ion-toolbar>
@@ -27,8 +27,7 @@
           <div class="grid grid-cols-6 gap-4 py-1">
             <template v-for="measure in measures" :key="measure.name">
               <div class="col-span-2">
-                <a-input
-                  size="large"
+                <ion-input
                   class="bg-transparent text-white rounded-xl"
                   type="text"
                   readonly
@@ -37,13 +36,13 @@
                 />
               </div>
               <div class="col-span-1">
-                <a-input
-                  size="large"
+                <ion-input
                   class="bg-transparent text-white rounded-xl"
                   type="number"
                   step="0.01"
-                  v-model:value="measure.value"
+                  v-model="measure.value"
                   placeholder="Valor"
+                  :clear-on-edit="true"
                 />
               </div>
             </template>
@@ -51,10 +50,21 @@
         </div>
         <a-form
           :model="evaluation"
-          @finish="storeEvaluation"
+          @finish="saveEvaluation"
           name="addEval"
           class="w-full grid grid-cols-5 gap-2"
         >
+          <a-form-item name="date" :rules="rules" class="col-span-2">
+            <a-date-picker
+              size="large"
+              class="bg-transparent text-white rounded-xl"
+              v-model:value="evaluation.date"
+              placeholder="Fecha"
+            />
+          </a-form-item>
+          <div class="col-span-3">
+            <multiple-uploader @setPhotos="setPhotos" />
+          </div>
           <a-form-item name="observation" :rules="rules" class="col-span-5">
             <a-textarea
               :autoSize="true"
@@ -67,17 +77,6 @@
               placeholder="Nota u observación"
             />
           </a-form-item>
-          <a-form-item name="date" :rules="rules" class="col-span-2">
-            <a-date-picker
-              size="large"
-              class="bg-transparent text-white rounded-xl"
-              v-model:value="evaluation.date"
-              placeholder="Fecha"
-            />
-          </a-form-item>
-          <div class="col-span-3">
-            <multiple-uploader @setPhotos="setPhotos" />
-          </div>
           <ion-button
             type="submit"
             class="font-bold col-span-5"
@@ -99,7 +98,7 @@
                 <ion-icon :icon="icon.closeOutline" />
               </ion-button>
             </div>
-            <a-image class="w-full h-full" :src="photo.webPath" :alt="'photo' + index" />
+            <a-image class="w-full h-36" :src="photo.webPath" :alt="'photo' + index" />
           </div>
         </div>
       </div>
@@ -107,132 +106,39 @@
   </ion-modal>
 </template>
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { onMounted } from "vue";
 import * as icon from "ionicons/icons";
 import parts from "@/vars/bodyParts";
-import { supabase } from "@/utils/supabase";
-import { message } from "ant-design-vue";
-import { pathToFile, loading } from "@/utils/helper";
-import moment from "moment";
+import { useNewEval } from "@/utils/evals";
+import { useUserStore } from "@/store/userStore";
+import { userRole } from "@/utils/supabase";
 const props = defineProps({
   user: {
     type: Object,
     required: true,
   },
 });
-const photos = ref([]);
-const rules = [
-  {
-    required: true,
-    message: "El campo es obligatorio",
-  },
-];
-const evaluation = reactive({
-  observation: "",
-  date: "",
-  profile_id: "",
-});
 
-var measures = reactive([]);
-
-const isOpen = ref(false);
-
-const openModal = () => {
-  isOpen.value = true;
-};
-
-const closeModal = () => {
-  isOpen.value = false;
-};
-
-const onModalDidDismiss = () => {
-  isOpen.value = false;
-};
-
-const onModalDidPresent = () => {
-  evaluation.profile_id = props.user.id;
-  evaluation.date = null;
-  evaluation.observation = "";
-
-  isOpen.value = true;
-};
-
-const setPhotos = (newPhotos) => {
-  newPhotos.forEach((photo) => {
-    photos.value.push(photo);
-  });
-};
-
-const removePhoto = (index) => {
-  photos.value.splice(index, 1);
-};
-
-const storeEvaluation = async () => {
-  try {
-    loading(true);
-    const { data, error } = await supabase
-      .from("evals")
-      .insert([
-        {
-          observation: evaluation.observation,
-          date: evaluation.date,
-          profile_id: evaluation.profile_id,
-        },
-      ])
-      .select()
-      .single();
-    if (error) {
-      message.error("No se pudo registrar la evaluación");
-      loading(false);
-      return;
-    }
-    for (let i = 0; i < measures.length; i++) {
-      let measure = measures[i];
-      await supabase.from("measures").insert([
-        {
-          key: measure.key,
-          name: measure.name,
-          value: parseFloat(measure.value),
-          eval_id: data.id,
-        },
-      ]);
-    }
-    for (let i = 0; i < 4; i++) {
-      let photo = photos.value[i];
-      if (photo) {
-        const file = await pathToFile(photo.webPath);
-        await storePhotos(data.id, file);
-      }
-    }
-    message.success("Evaluación registrada con éxito");
-    loading(false);
-    closeModal();
-  } catch (error) {
-    loading(false);
-    console.log(error);
-    message.error("No se pudo registrar la evaluación");
-  }
-};
-
-const storePhotos = async (eval_id, file) => {
-  const now = moment().unix();
-  const name = `${now}`;
-  const { data, error } = await supabase.storage.from("zfit_storage").upload(name, file);
-  if (error) {
-    console.log(error);
-  } else {
-    const res = await supabase.storage.from("zfit_storage").getPublicUrl(name);
-    console.log(res);
-    const photoFile = await supabase.from("evalphotos").insert([
-      {
-        path: res.data.publicUrl,
-        eval_id: eval_id,
-      },
-    ]);
-  }
-};
+const {
+  evaluation,
+  rules,
+  isOpen,
+  openModal,
+  closeModal,
+  onModalDidDismiss,
+  onModalDidPresent,
+  setPhotos,
+  saveEvaluation,
+  removePhoto,
+  measures,
+  photos,
+} = useNewEval(props.user.id);
 
 onMounted(async () => {
+  const user = useUserStore().getUser;
+  if (user && userRole(["admin", "trainer"])) {
+    evaluation.trainer_id = user.id;
+  }
   parts.forEach((part) => {
     measures.push(part);
   });

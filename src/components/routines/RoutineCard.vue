@@ -6,9 +6,12 @@
     <div
       class="absolute top-0 right-0 left-0 h-8 bg-primary bg-opacity-75 flex items-center px-2"
     >
-      <h1 class="w-full ellipsis text-white font-bold uppercase text-lg">
+      <router-link
+        :to="'/pages/routines/' + routine.id"
+        class="w-full ellipsis text-contrast font-bold uppercase text-lg"
+      >
         {{ routine.name }}
-      </h1>
+      </router-link>
     </div>
     <div
       class="h-full w-full py-10 px-2 grid grid-cols-4 items-center bg-primary bg-opacity-80"
@@ -16,9 +19,10 @@
       <ion-avatar class="col-span-1 rounded-full border-2 border-white !w-16 !h-16">
         <a-image :src="routine.image" class="rounded-full !w-16 !h-16" />
       </ion-avatar>
-      <p class="line-clamp-3 text-lg leading-5 col-span-3">
-        {{ routine.advantages }}
-      </p>
+      <p
+        class="line-clamp-4 text-md leading-5 col-span-3"
+        v-html="routine.description"
+      ></p>
     </div>
     <div
       class="absolute bottom-0 right-0 left-0 h-8 bg-primary justify-evenly bg-opacity-75 flex items-center px-2"

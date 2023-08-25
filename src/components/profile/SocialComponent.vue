@@ -61,7 +61,11 @@
       <ion-icon :icon="isShow ? icon.closeCircleOutline : icon.addCircle" />
     </ion-button>
   </div>
-  <ion-list v-if="socials.length > 0" :key="socials.length + 'list'">
+  <ion-list
+    v-if="socials.length > 0"
+    :key="socials.length + 'list'"
+    class="space-y-4 mt-6"
+  >
     <template v-for="social in socials" :key="social.id">
       <ion-popover
         v-if="social.name != 'Email'"

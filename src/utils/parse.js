@@ -38,6 +38,14 @@ const upload = async (filePath, name, upsert=false ) => {
     return import.meta.env.VITE_STORAGE_BASE_URL+name
   }
 };
+
+const removeFile=async(fileId)=>{
+  if(!Array.isArray(fileId)){
+    fileId = [fileId];
+  }
+  const res=await supabase.storage.from("zfit_storage").remove(fileId);
+  return res;
+}
 async function getBlobFromPath(path) {
   const response = await fetch(path);
   const blob = await response.blob();
@@ -59,4 +67,12 @@ const formatMoney = (number) => {
   return "$" + number.toLocaleString("en-US");
 };
 
-export { getPagination, filterOption, onSuggest, upload, ionLoading, formatMoney };
+const patterns={
+    mustLower:/.*[a-z]/g,
+    mustUpper:/.*[A-Z]/g,
+    mustDigit:/.*[0-9]/g,
+    mustLength:/.{min,max}/g,
+  
+}
+
+export { getPagination, filterOption, onSuggest, upload, removeFile, ionLoading, formatMoney, patterns};

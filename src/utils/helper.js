@@ -1,5 +1,6 @@
 import { alertController } from "@ionic/vue";
 import { loadingController } from "@ionic/vue";
+import {ref} from "vue"
 const presentConfirm = async (
   header,
   subheader = "",
@@ -44,4 +45,26 @@ const loading = async (state = true, message = "Cargando...") => {
   } catch (error) {}
 };
 
+
+export function useModal(){
+  const isOpen = ref(false);
+  const onModalDidPresent = async() => {
+    isOpen.value = true;
+  };
+
+  const openModal = () => {
+    isOpen.value = true;
+  };
+
+  const closeModal = () => {
+    isOpen.value = false;
+  };
+
+  const onModalDidDismiss = () => {
+    isOpen.value = false;
+  };
+
+  return {isOpen, openModal, closeModal, onModalDidDismiss, onModalDidPresent}
+
+}
 export { presentConfirm, pageRange, pathToFile, loading };

@@ -44,10 +44,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 const loading = ref(true);
-
+const props = defineProps({
+  duration: {
+    type: Number,
+    default: 3500,
+  },
+});
 onMounted(() => {
   setTimeout(() => {
     loading.value = false;
-  }, 3500);
+  }, props.duration);
 });
 </script>

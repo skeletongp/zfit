@@ -1,6 +1,7 @@
 <template>
   <ion-app>
-    <ion-router-outlet />
+    <ion-nav :root="component"></ion-nav>
+    <ion-router-outlet :animated="true" />
   </ion-app>
 </template>
 
@@ -10,7 +11,8 @@ import { App } from "@capacitor/app";
 import { ref, reactive, onMounted } from "vue";
 import { message } from "ant-design-vue";
 import supabase from "@/utils/supabase";
-
+import HomePage from "@/views/pages/HomePage.vue";
+const component = HomePage;
 var pressed = 0;
 useBackButton(10, () => {
   pressed++;

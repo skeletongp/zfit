@@ -10,8 +10,13 @@
         />
       </ion-toolbar>
     </ion-header>
-    <ion-content class="ion-padding">
-      <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-content class="">
+      <ion-fab
+        slot="fixed"
+        vertical="bottom"
+        horizontal="end"
+        v-if="$userRole(['admin', 'trainer'])"
+      >
         <router-link to="/pages/routines/new">
           <ion-fab-button>
             <ion-icon :icon="add" />

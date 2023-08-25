@@ -2,15 +2,15 @@
   <ion-page>
     <ion-header class="bg-primary ion-padding">
       <ion-toolbar>
-        <ion-searchbar
-          v-model="params.search"
-          @ionInput="onSearch"
-          :debounce="300"
-          placeholder="Buscar"
-        />
-      </ion-toolbar>
-      <ion-toolbar>
         <div class="grid grid-cols-2 gap-2">
+          <ion-searchbar
+            v-model="params.search"
+            @ionInput="onSearch"
+            :debounce="300"
+            placeholder="Buscar"
+            class="col-span-2 mb-2"
+            :animated="true"
+          />
           <a-select
             class="w-full"
             placeholder="Ordenar por"
@@ -29,6 +29,10 @@
             :options="groups"
             @change="onFilterGroup"
           />
+          <span class="text-xs col-span-2 pt-2"
+            >© 2010, Universidad Nacional de Luján. <br />
+            * Por cada 100g</span
+          >
         </div>
       </ion-toolbar>
     </ion-header>
@@ -38,29 +42,25 @@
         <ion-item
           v-for="food in foods"
           :key="foods.id"
-          class="shadow-xl px-1.5 py-2 relative border border-gray-500"
+          class="shadow-xl py-2 pt-3 relative border border-gray-500"
         >
-          <div class="grid grid-cols-3 gap-0 space-x-4 w-full">
-            <div class="col-span-3 uppercase font-bold">{{ food.name }}</div>
-            <div class="col-span-1">Prot.: {{ food.proteins }}</div>
-            <div class="col-span-1">Cal.: {{ food.calories }}</div>
-            <div class="col-span-1">X {{ food.unit }}</div>
-          </div>
-          <span class="absolute top-0 right-1">{{ food.group }}</span>
-          <div class="absolute -bottom-2 right-1">
-            <EditFood
-              :oldFood="food"
-              v-if="$userRole('admin')"
-              @onSave="onReset"
-              :key="food.id"
-            />
-          </div>
+          <NutritionData :food="food">
+            <div class="grid grid-cols-3 gap-0 space-x-4 w-full">
+              <div class="col-span-3 uppercase font-bold ellipsis w-4/5 text-contrast">
+                {{ food.name }}
+              </div>
+              <div class="col-span-1">Prot.: {{ food.Proteínas }}</div>
+              <div class="col-span-1">kCal: {{ food.Calorías }}</div>
+              <div class="col-span-1">Carb.: {{ food.Carbohidratos }}</div>
+            </div>
+          </NutritionData>
+          <small class="absolute -top-1 right-1 ellipsis">{{ food.group }}</small>
         </ion-item>
         <ion-infinite-scroll v-if="foods.length > 9" @ionInfinite="onPaginate">
           <ion-infinite-scroll-content></ion-infinite-scroll-content>
         </ion-infinite-scroll>
       </ion-list>
-      <empty-card v-else />
+      <empty-card v-else :duration="1500" />
     </ion-content>
   </ion-page>
 </template>
@@ -70,6 +70,7 @@ import { onIonViewDidEnter } from "@ionic/vue";
 import { CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons-vue";
 import NewFood from "@/components/foods/NewFood.vue";
 import EditFood from "@/components/foods/EditFood.vue";
+import NutritionData from "@/components/foods/NutritionData.vue";
 import { useFoods } from "@/utils/foods";
 
 const {

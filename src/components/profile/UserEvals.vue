@@ -12,12 +12,12 @@
       >
       </a-select>
     </div>
-    <div class="w-full whitespace-nowrap pl-2" v-if="datos.length > 0">
+    <div class="w-full whitespace-nowrap pl-2" v-if="measures.length > 0">
       <div class="p-2 w-full grid grid-cols-2 gap-4">
         <span v-if="evaluation" class="col-span-2 text-contrast w-full ellipsis">
           {{ evaluation.observation }}<sup>*</sup>
         </span>
-        <div v-for="dato in datos" class="grid grid-cols-4 items-center col-span-1">
+        <div v-for="dato in measures" class="grid grid-cols-4 items-center col-span-1">
           <span class="col-span-3">{{ dato.name.toString().toUpperCase() }}</span>
           <span class="col-span-1">{{ dato.value }}</span>
         </div>
@@ -34,7 +34,11 @@
           v-for="(photo, index) in photos"
           :key="index + 'p'"
         >
-          <a-image class="w-full h-full" :src="photo.path" :alt="'photo' + index" />
+          <image-component
+            cstClass="w-full h-36"
+            :path="photo.path"
+            :alt="'photo' + index"
+          />
         </div>
       </div>
     </div>
@@ -44,14 +48,13 @@
 import { ref, reactive, onMounted } from "vue";
 import "@/theme/humanBody.css";
 import parts from "@/vars/bodyParts";
+import { useEvals } from "@/utils/evals";
 import { supabase } from "@/utils/supabase";
 import moment from "moment";
-
-const datos = ref([]);
+const { evals, params, getEvals, evaluation, findEval } = useEvals();
+const measures = ref([]);
 const photos = ref([]);
 const options = ref([]);
-const evals = ref([]);
-const evaluation = ref(null);
 const props = defineProps({
   user: {
     type: Object,
@@ -60,31 +63,26 @@ const props = defineProps({
 });
 
 const getData = async () => {
-  const { data, error } = await supabase
-    .from("evals")
-    .select("*, measures(*), evalphotos(*)")
-    .eq("user_id", props.user.id)
-    .order("id", { ascending: false })
-    .limit(45);
-
-  if (error) {
-    console.log(error);
-  } else {
-    evals.value = data;
-    data.forEach((dat) => {
-      options.value.push({
-        value: dat.id,
-        label: moment(dat.date).format("DD-MM-YYYY") + " - " + dat.observation,
-      });
+  params.cols = "*, measures(*), evalphotos(*)";
+  params.filters = [{ key: "user_id", value: props.user.id }];
+  params.limit = 45;
+  await getEvals();
+  evals.value.forEach((dat) => {
+    options.value.push({
+      value: dat.id,
+      label: moment(dat.date).format("DD-MM-YYYY") + " - " + dat.observation,
     });
+  });
+  if (evals.value.length > 0) {
+    await getEval(evals.value[0].id);
   }
 };
 
 const getEval = async (id) => {
-  evaluation.value = evals.value.find((eva) => eva.id == id);
+  await findEval(id);
   if (evaluation.value) {
-    datos.value = evaluation.value.measures;
-    photos.value = evaluation.value.evalphotos;
+    measures.value = evaluation.value.measures || [];
+    photos.value = evaluation.value.evalphotos || [];
   }
 };
 
@@ -102,9 +100,9 @@ const suscribeForChanges = async () => {
 };
 
 onMounted(async () => {
-  datos.value = [];
+  measures.value = [];
   parts.forEach((piece) => {
-    datos.value.push(piece);
+    measures.value.push(piece);
   });
   await getData();
   await suscribeForChanges();

@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import { IonicVue } from "@ionic/vue";
-
+import { SplashScreen } from "@capacitor/splash-screen";
 
 import "@/theme/app.css";
 import { setupStore } from "@/store";
@@ -24,9 +24,14 @@ const filterOption = (input, option) => {
 
 app.config.globalProperties.$userRole = userRole;
 app.config.globalProperties.$filterOption = filterOption;
+SplashScreen.show({
+  showDuration: 3000,
+  autoHide: true,
+});
 router.isReady().then(async () => {
   app.mount("#app");
 });
+
 
 
 

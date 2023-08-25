@@ -7,8 +7,6 @@
   <ion-modal
     @willPresent="onModalPresent"
     @willDismiss="onModalDismiss"
-    :breakpoints="[0.8]"
-    :initial-breakpoint="0.8"
     :is-open="isOpen"
     :backdrop-dismiss="false"
   >
@@ -30,12 +28,12 @@
         name="food"
         class="w-full"
       >
-        <div class="grid grid-cols-6 gap-2 items-center">
+        <div class="grid grid-cols-4 gap-x-2 items-center">
           <a-form-item
             name="name"
             label="Nombre del alimento"
             :rules="rules.name"
-            class="col-span-6"
+            class="col-span-4"
           >
             <a-auto-complete
               size="large"
@@ -50,11 +48,11 @@
             name="group"
             label="Grupo alimenticio"
             :rules="rules.group"
-            class="col-span-4"
+            class="col-span-3"
           >
             <a-select
               size="large"
-              class="bg-transparent text-white py-2"
+              class="bg-transparent text-white"
               v-model:value="food.group"
               :options="groups"
               :filter-option="filterOption"
@@ -62,48 +60,20 @@
               placeholder="Seleccione una opción"
             />
           </a-form-item>
-
           <a-form-item
-            name="unit"
-            label="Porción/Medida"
-            :rules="rules.unit"
-            class="col-span-2"
-          >
-            <a-select
-              size="large"
-              class="bg-transparent text-white py-2"
-              v-model:value="food.unit"
-              :options="units"
-              placeholder="Seleccione"
-            />
-          </a-form-item>
-          <a-form-item
-            name="proteins"
-            label="Proteínas"
-            :rules="rules.proteins"
-            class="col-span-3"
+            v-for="(nutrient, index) in nutrients"
+            :key="index"
+            :name="nutrient.name"
+            :label="nutrient.label"
+            :rules="rules[nutrient.name]"
+            class="col-span-1"
           >
             <a-input
               size="large"
               type="number"
               step="0.01"
-              class="bg-transparent text-white py-2"
-              v-model:value="food.proteins"
-              placeholder="Ingrese un valor"
-            />
-          </a-form-item>
-          <a-form-item
-            name="calories"
-            label="Calorías"
-            :rules="rules.calories"
-            class="col-span-3"
-          >
-            <a-input
-              size="large"
-              type="number"
-              step="0.01"
-              class="bg-transparent text-white py-2"
-              v-model:value="food.calories"
+              class="bg-transparent text-white"
+              v-model:value="food[nutrient.name]"
               placeholder="Ingrese un valor"
             />
           </a-form-item>
@@ -129,7 +99,7 @@ import { useNewFood, useFoods } from "@/utils/foods";
 import { add, close } from "ionicons/icons";
 import { filterOption, onSuggest } from "@/utils/parse";
 const isOpen = ref(false);
-const { food, rules, groups, units, saveFood } = useNewFood();
+const { food, rules, groups, nutrients, saveFood } = useNewFood();
 const { params, getFoods } = useFoods();
 const options = ref([]);
 const foods = ref([]);

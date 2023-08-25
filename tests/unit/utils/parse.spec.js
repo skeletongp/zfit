@@ -44,8 +44,8 @@ describe("parseFuntions", () => {
   //Tests that is uploading file
   it("test_upload", async () => {
     await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_TEST_EMAIL,
-      password: import.meta.env.VITE_TEST_PASSWORD,
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
     });
     const file = await parse.upload(dataURL, "test", true);
     expect(typeof file).toEqual("string");
@@ -53,8 +53,8 @@ describe("parseFuntions", () => {
   //Tests that is uploading failed file
   it("test_upload_fail", async () => {
     await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_TEST_EMAIL,
-      password: import.meta.env.VITE_TEST_PASSWORD,
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
     });
     const file = await parse.upload(dataURL, "test");
     expect(typeof file).toEqual("object");

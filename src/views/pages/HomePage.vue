@@ -1,7 +1,11 @@
 <template>
   <ion-page>
     <ion-content class="ion-padding">
-      <h1 class="py-4 text-center uppercase text-xl font-bold">Rutinas </h1>
+      <div class="py-4 w-full text-center">
+        <router-link class="uppercase text-xl font-bold" to="/pages/routines"
+          >Rutinas
+        </router-link>
+      </div>
       <RoutineSwiper />
     </ion-content>
   </ion-page>

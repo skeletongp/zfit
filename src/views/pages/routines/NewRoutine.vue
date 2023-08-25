@@ -24,7 +24,7 @@
           >
             <quill-editor
               v-model:content="routine.description"
-              placeholder="Ingrese una descripción detallada"
+              :content="routine.description"
               toolbar="minimal"
               theme="snow"
               contentType="html"
@@ -93,12 +93,13 @@
 <script setup>
 import { ref } from "vue";
 import { useNewRoutine } from "@/utils/routines";
+import { useRouter } from "vue-router";
 const range = ref([16, 65]);
 const duration = ref([10, 60]);
 const body = ref([50, 140]);
 
 const { routine, rules, saveRoutine } = useNewRoutine();
-
+const router = useRouter();
 const setPhoto = (photo) => {
   routine.image = photo;
 };
@@ -107,7 +108,7 @@ const onFinish = async () => {
   routine.range = `${range.value[0]}-${range.value[1]} años`;
   routine.duration = `${duration.value[0]}-${duration.value[1]} Mins.`;
   routine.body = `${body.value[0]}-${body.value[1]} Kgs.`;
-  console.log(routine);
-  await saveRoutine(routine);
+  const res = await saveRoutine(routine);
+  router.push({ path: "/pages/routines/" + res.id });
 };
 </script>

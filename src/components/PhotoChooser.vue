@@ -1,20 +1,29 @@
 <template>
-  <ion-item>
-    <div class="image-container my-2 p-0 w-full">
-      <ion-img
-        class="!max-h-[15rem]"
-        :src="photo"
-        @click="showButton = !showButton"
-      ></ion-img>
-      <ion-button size="large" class="overlay-button" v-if="showButton" @click="takePhoto"
-        >Selecciona una foto</ion-button
-      >
-    </div>
+  <ion-item
+    class="border rounded-md border-gray-600 ion-no-padding"
+    v-if="!$slots.default"
+  >
+    <ion-avatar slot="end" class="w-5 h-5" v-if="photo">
+      <a-image :src="photo" class="rounded-full w-5 h-5" />
+    </ion-avatar>
+    <a-button html-type="button" class="w-full" color="light" @click="takePhoto">
+      <div class="w-full ellipsis">Seleccionar foto</div>
+    </a-button>
   </ion-item>
+  <a-button
+    v-else
+    html-type="button"
+    class="w-full"
+    color="light"
+    type="text"
+    @click="takePhoto"
+  >
+    <slot />
+  </a-button>
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onMounted, watch } from "vue";
+import { ref, onBeforeMount, watch } from "vue";
 import { Camera, CameraResultType } from "@capacitor/camera";
 import { upload } from "@/utils/parse";
 import moment from "moment";
@@ -27,12 +36,16 @@ const props = defineProps({
     type: String,
     default: null,
   },
+
+  name: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["onPhoto"]);
-
 const showButton = ref(false);
-const photo = ref("");
+const photo = ref(null);
 const openFileChooser = ref(false);
 
 const takePhoto = async () => {
@@ -46,8 +59,8 @@ const takePhoto = async () => {
       source: "Camera",
     });
     photo.value = photoInstance.webPath;
-    const name = moment().unix().toString();
-    photo.value = await upload(photoInstance.webPath, name);
+    const name = props.name || moment().unix().toString();
+    photo.value = await upload(photoInstance.webPath, name, true);
     emit("onPhoto", photo.value);
     showButton.value = false;
   } catch (error) {
@@ -55,10 +68,7 @@ const takePhoto = async () => {
   }
 };
 
-const onModalDidPresent = async () => {
-  await takePhoto();
-};
-onMounted(async () => {
+onBeforeMount(async () => {
   photo.value = props.prevPhoto || "src/assets/no-photo.png";
 });
 </script>

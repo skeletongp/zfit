@@ -2,8 +2,9 @@ import { ref, reactive } from "vue";
 import { useQuery } from "@/utils/query";
 
 export function useRoutines(paginate=true) {
-  const { params, getData } = useQuery("routines");
+  const { params, getData, findData } = useQuery("routines");
   const routines = ref([]);
+  const routine= ref(null);
 
   const getRoutines = async () => {
     params.searchables = "name,description,goal,advantages";
@@ -12,12 +13,17 @@ export function useRoutines(paginate=true) {
     instance.data.length>0?routines.value.push(...instance.data): routines.value=[];
     return instance;
   };
+  const findRoutine = async (value, field = "id") => {
+    const instance = await findData(field, value);
+    routine.value = instance.data;
+    return instance;
+  };
 
   const onSearch = async () => {
       routines.value = [];
      return  await getRoutines();
     };
-  return { params, routines, getRoutines, onSearch };
+  return { params, routines, getRoutines, findRoutine, routine, onSearch };
 }
 
 export function useNewRoutine() {
@@ -55,8 +61,13 @@ export function useNewRoutine() {
    return res;
   }
 
+  const deleteRoutine = async (value, field = id) => {
+    const { deleteData } = useQuery("routines");
+    const res = await deleteData(field, value);
+    return res;
+  };
   const resetRoutine=()=>{
     Object.keys(routine).forEach((key)=>routine[key]=null)
   }
-  return {routine, rules, saveRoutine, resetRoutine}
+  return {routine, rules, saveRoutine, deleteRoutine, resetRoutine}
 }

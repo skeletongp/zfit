@@ -3,7 +3,15 @@
     <ion-content :fullscreen="true" class="ion-no-padding">
       <div class="w-full h-full bg-primary p-4 flex flex-col" :key="key">
         <!-- Primary Info -->
-        <div class="w-full flex flex-col items-center">
+        <div class="w-full flex flex-col items-center relative">
+          <div class="absolute bottom-1 right-1">
+            <photo-chooser :prevPhoto="user.photo" @onPhoto="editPhotoUser">
+              <ion-icon :icon="icon.cameraOutline" class="text-xl hover:text-contrast" />
+            </photo-chooser>
+          </div>
+          <div class="absolute bottom-1 left-1">
+            <PasswordChange />
+          </div>
           <ion-avatar
             class="mx-auto rounded-full border-2 my-1 border-contrast overflow-hidden !w-20 !h-20"
           >
@@ -38,7 +46,7 @@
         </div>
         <hr class="border-contrast mb-1" />
         <!-- Segments -->
-        <ion-segment v-model="viewOpen">
+        <ion-segment v-model="viewOpen" :scrollable="true">
           <ion-segment-button value="body" :class="{ active: isActive('body') }">
             <ion-icon :icon="icon.bodyOutline"></ion-icon>
           </ion-segment-button>
@@ -50,6 +58,9 @@
           </ion-segment-button>
           <ion-segment-button value="saved" :class="{ active: isActive('saved') }">
             <ion-icon :icon="icon.bookmarkOutline"></ion-icon>
+          </ion-segment-button>
+          <ion-segment-button value="edit" :class="{ active: isActive('edit') }">
+            <ion-icon :icon="icon.optionsOutline"></ion-icon>
           </ion-segment-button>
         </ion-segment>
 
@@ -65,21 +76,32 @@
         <div v-else-if="viewOpen == 'evals'">
           <UserEvals :user="user" :isMyProfile="true" />
         </div>
+        <!-- Saved -->
+        <div v-else-if="viewOpen == 'saved'" class="w-full">
+          <SavedItems />
+        </div>
+        <!-- Edit -->
+        <div v-else-if="viewOpen == 'edit'" class="w-full">
+          <EditUser :prev-user="user" />
+        </div>
       </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from "vue";
+import { ref, watch, onBeforeMount } from "vue";
 import { useUserStore } from "@/store";
 import BodyComponent from "@/components/profile/BodyComponent.vue";
 import SocialComponent from "@/components/profile/SocialComponent.vue";
 import UserEvals from "@/components/profile/UserEvals.vue";
+import EditUser from "@/components/profile/EditUser.vue";
+import SavedItems from "@/components/profile/SavedItems.vue";
+import PasswordChange from "@/components/profile/PasswordChange.vue";
 
 import * as icon from "ionicons/icons";
-import { useUsers } from "@/utils/users";
-
+import { useUsers, useEditUser } from "@/utils/users";
+const { updatePhoto, loadUser } = useEditUser();
 const viewOpen = ref(null);
 const key = ref(0);
 const { params, user, findUser, getWeight, imcStatus } = useUsers();
@@ -94,13 +116,30 @@ const getUser = async () => {
   params.cols = "*, contacts(*)";
   await findUser(id);
   await getWeight(id);
-  viewOpen.value = "body";
+};
+
+const editPhotoUser = async (photo) => {
+  await loadUser(user.value);
+  await updatePhoto(photo);
+  await getUser();
 };
 
 onBeforeMount(async () => {
   await getUser();
+  viewOpen.value = "body";
+
   key.value = new Date().getTime();
 });
+
+watch(
+  () => viewOpen.value,
+  async () => {
+    await getUser();
+  },
+  {
+    deep: true,
+  }
+);
 </script>
 
 <style scoped>

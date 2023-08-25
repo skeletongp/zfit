@@ -15,36 +15,44 @@ export function useQuery(table = "none") {
     cols: "*",
     paginate: false,
     searchables: null,
-    filters:[],
+    filters: [],
   });
 
-  const getData = async () => {
+  const getData = async (load = true) => {
+    var loading = null;
+    if (load) {
+      loading = await showLoading();
+    }
     const { from, to } = getPagination(params.page, params.perPage);
     let instance = supabase
       .from(table)
       .select(params.cols)
-      .order(params.orderBy||'id', { ascending: params.ascend })
-      
+      .order(params.orderBy || "id", { ascending: params.ascend });
+
     if (params.search && params.searchables) {
       instance = search(instance, params.searchables, params.search);
     }
     if (params.paginate && !params.limit) {
       instance = instance.range(from, to);
     }
-    if(params.limit && !params.paginate){
-      instance = instance.limit(params.limit||0);
+    if (params.limit && !params.paginate) {
+      instance = instance.limit(params.limit || 0);
     }
-    if(params.filters && params.filters.length>0){
-      params.filters.map((filt)=>{
-        instance=instance.eq(filt.key,filt.value )
-      })
+    if (params.filters && params.filters.length > 0) {
+      params.filters.map((filt) => {
+        instance = instance.eq(filt.key, filt.value);
+      });
     }
     instance = await instance;
+    if (load) {
+      setTimeout(() => {
+        loading.dismiss();
+      }, 500);
+    }
     return instance;
   };
 
   const findData = async (key, value) => {
-    const user = await getUser();
     const instance = await supabase
       .from(table)
       .select(params.cols)
@@ -53,7 +61,7 @@ export function useQuery(table = "none") {
     return instance;
   };
 
-  const saveData = async (values) => {
+  const saveData = async (values, msg = true) => {
     const loading = await showLoading();
     const { data, error } = await supabase.from(table).upsert(values).select();
     message.config({
@@ -64,7 +72,9 @@ export function useQuery(table = "none") {
       loading.dismiss();
       return error;
     } else {
-      message.success("Datos registrados exitosamente");
+      if (msg) {
+        message.success("Datos registrados exitosamente");
+      }
       loading.dismiss();
       return data[0];
     }
@@ -73,8 +83,11 @@ export function useQuery(table = "none") {
     const loading = await showLoading();
     const { data, error } = await supabase
       .from(table)
-      .update(values)
-      .eq("id", values.id)
+      .upsert(values, {
+        ignoreduplicates: false,
+        onConflict: "id",
+      })
+
       .select();
     message.config({
       top: "200px",
@@ -92,25 +105,22 @@ export function useQuery(table = "none") {
   };
   const search = (instance, cols, query) => {
     let stm = "";
-   if(query.length>1){
-    const columns = cols.split(",");
-    const textcols = query.split(" ");
-    textcols.forEach((text) => {
-      if (text && text != " " && text.length > 1) {
-        columns.forEach((col) => {
-          stm += `${col}.ilike.%${text}%,`;
-        });
-      }
-    });
-    instance = instance.or(stm.slice(0, -1));
-   }
+    if (query.length > 1) {
+      const columns = cols.split(",");
+      const textcols = query.split(" ");
+      textcols.forEach((text) => {
+        if (text && text != " " && text.length > 1) {
+          columns.forEach((col) => {
+            stm += `${col}.ilike.%${text}%,`;
+          });
+        }
+      });
+      instance = instance.or(stm.slice(0, -1));
+    }
     return instance;
   };
   const deleteData = async (key, value) => {
-    const instance = await supabase
-      .from(table)
-      .delete()
-      .eq(key, value)
+    const instance = await supabase.from(table).delete().eq(key, value);
     return instance;
   };
 
@@ -129,6 +139,7 @@ export function useQuery(table = "none") {
 const showLoading = async () => {
   const loading = await loadingController.create({
     message: "Cargando...",
+    spinner: "circles",
   });
 
   loading.present();

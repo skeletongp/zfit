@@ -90,7 +90,7 @@ const onLogin = async () => {
   if (res == "Bienvenido") {
     message.success(res);
     closeModal();
-    router.push({ name: "home" });
+    router.go(0);
   } else {
     message.error(res);
   }

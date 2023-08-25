@@ -53,5 +53,6 @@ onMounted(async () => {
       measures.value.push(piece);
     });
   const newMeasures = await getMeasures(props.user.id);
+  measures.value = newMeasures.length > 0 ? newMeasures : measures.value;
 });
 </script>
