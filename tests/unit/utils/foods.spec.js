@@ -210,7 +210,7 @@ describe("useNewFood_function", async () => {
     food.Calorías = 165;
     const res = await updateFood(food);
     expect(res.Calorías).toEqual(165);
-  });
+  }); 
 
   //Tests that admin can delete food
   it("test_delete_food", async () => {

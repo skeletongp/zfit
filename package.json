@@ -8,7 +8,7 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
-    "unit": "vitest --ui",
+    "unit": "vitest --ui --dom",
     "coverage": "vitest run --coverage",
     "lint": "eslint"
   },
@@ -25,6 +25,7 @@
     "@ionic/vue": "^7.0.0",
     "@ionic/vue-router": "^7.0.0",
     "@vueup/vue-quill": "^1.2.0",
+    "happy-dom": "^10.11.0",
     "ionicons": "^7.0.0",
     "mitt": "^3.0.1",
     "pinia": "^2.1.4",

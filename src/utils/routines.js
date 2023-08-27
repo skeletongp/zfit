@@ -30,12 +30,11 @@ export function useNewRoutine() {
   const routine = reactive({
     name: null,
     description: null,
+    image: null,
     duration: null,
     goal: null,
     range: null,
-    advantages: null,
     body: null,
-    image: null,
   });
 
   const rules = {
@@ -51,6 +50,10 @@ export function useNewRoutine() {
       { required: true, message: "Campo requerido" },
       { type: 'url', message: "Formato inválido" },
     ],
+    duration: [{ required: true, message: "Campo requerido" }],
+    goal: [{ required: true, message: "Campo requerido" }],
+    range: [{ required: true, message: "Campo requerido" }],
+    body: [{ required: true, message: "Campo requerido" }],
   };
 
   const saveRoutine=async()=>{

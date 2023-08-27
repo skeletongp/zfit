@@ -13,36 +13,36 @@ const presentConfirm = async (
     message: message,
     buttons: buttons,
   });
-
   await alert.present();
+  return alert;
 };
-
+/* 
 const pageRange = (page, perpage) => {
   const from = (page - 1) * perpage;
   const to = perpage * page - 1;
   return [from, to];
-};
+}; */
 
-const pathToFile = async (path) => {
+/* const pathToFile = async (path) => {
   const file = await fetch(path);
   const blob = await file.blob();
   const fileBlob = new File([blob], "image.jpg", { type: "image/jpeg" });
   return fileBlob;
-};
+}; */
 const loading = async (state = true, message = "Cargando...") => {
-  try {
-    //check if loading is already present
+
     const loadingElement = document.querySelector("ion-loading");
     if (loadingElement ) {
       loadingElement.dismiss();
+      return loadingElement;
     } else if(state) {
       const loading = await loadingController.create({
         message,
         duration: 0,
       });
       loading.present();
+      return loading;
     }
-  } catch (error) {}
 };
 
 
@@ -67,4 +67,4 @@ export function useModal(){
   return {isOpen, openModal, closeModal, onModalDidDismiss, onModalDidPresent}
 
 }
-export { presentConfirm, pageRange, pathToFile, loading };
+export { presentConfirm,  loading };

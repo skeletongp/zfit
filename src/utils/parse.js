@@ -22,9 +22,7 @@ const onSuggest=(options, val)=>{
 const upload = async (filePath, name, upsert=false ) => {
   const loading = await ionLoading();
   var blob = filePath;
-  if(!filePath.includes('data:')){
     blob= await getBlobFromPath(filePath);
-  }
   const { data, error } = await supabase.storage
     .from("zfit_storage")
     .upload(name, blob,{
@@ -40,9 +38,8 @@ const upload = async (filePath, name, upsert=false ) => {
 };
 
 const removeFile=async(fileId)=>{
-  if(!Array.isArray(fileId)){
-    fileId = [fileId];
-  }
+ 
+  fileId=Array.isArray(fileId) ? fileId: [fileId];
   const res=await supabase.storage.from("zfit_storage").remove(fileId);
   return res;
 }
