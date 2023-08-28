@@ -20,7 +20,7 @@ export function useUsers() {
     return instance;
   };
 
-  const findUser = async (value, field = "id") => {
+  const findUser = async (value, field ) => {
     const instance = await findData(field, value);
     user.value = instance.data;
     return instance;

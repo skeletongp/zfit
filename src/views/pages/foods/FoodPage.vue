@@ -37,7 +37,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <NewFood v-if="$userRole('admin')" @onSave="onReset" />
+      <NewFood v-if="$userRole(['admin'])" @onSave="onReset" />
       <ion-list v-if="foods.length > 0">
         <ion-item
           v-for="food in foods"

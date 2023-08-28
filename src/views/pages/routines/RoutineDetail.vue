@@ -71,7 +71,7 @@ const setFavorite = async () => {
 
 onIonViewDidEnter(async () => {
   const id = route.params.id;
-  await findRoutine(id);
+  await findRoutine(id, "id");
   isFavorite.value = await checkIsFavorite(id, "routines");
 });
 </script>

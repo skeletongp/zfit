@@ -8,7 +8,7 @@ export function useFoods(paginate = true) {
     params.paginate = paginate;
     params.searchables = "name,group";
     const instance = await getData(load);
-    instance.data ? foods.value.push(...instance.data) : (foods.value = []);
+    foods.value.push(...instance.data) ;
     return instance;
   };
 
@@ -118,9 +118,7 @@ export function useNewFood() {
 
   const saveFood = async () => {
     const res = await saveData(food);
-    if (res) {
-      resetFood();
-    }
+   
     return res;
   };
   const updateFood = async () => {
@@ -129,7 +127,7 @@ export function useNewFood() {
     return res;
   };
 
-  const deleteFood = async (value, field = id) => {
+  const deleteFood = async (value, field ) => {
     const { deleteData } = useQuery("foods");
     const res = await deleteData(field, value);
     return res;

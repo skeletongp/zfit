@@ -93,6 +93,25 @@ describe("signupFunction", () => {
     const res = await handleSignup();
     expect([200,422]).toContain(res.status);
   });
+
+  //Tests that can signup invited
+  it("Invite can signup", async () => {
+    const { user, handleSignup } = useSignup();
+    user.name = "Ismael Invited";
+    user.email = "invited@zfit.com";
+    user.password = import.meta.env.VITE_USER_PASSWORD;
+    user.password_confirmation = import.meta.env.VITE_USER_PASSWORD;
+    const res = await handleSignup();
+    expect([200]).toContain(res.status);
+  });
+
+  //Tests that signup throw error
+  it("Failts throw error", async () => {
+    const { user, handleSignup } = useSignup();
+    user.name = "Ismael Invited";
+    const res = await handleSignup();
+    expect(res.status).toBe(501);
+  });
 });
 
 
@@ -123,6 +142,7 @@ describe('loginFunction', ()=>{
     const {user, handleLogin} = useLogin();
     user.email = import.meta.env.VITE_ADMIN_EMAIL;
     user.password = import.meta.env.VITE_ADMIN_PASSWORD;
+    user.remember=true;
     const res= await handleLogin();
     expect(res).toEqual('Bienvenido');
   })

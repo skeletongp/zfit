@@ -10,10 +10,10 @@ export function useRoutines(paginate=true) {
     params.searchables = "name,description,goal,advantages";
     params.paginate=paginate;
     const instance = await getData();
-    instance.data.length>0?routines.value.push(...instance.data): routines.value=[];
+    routines.value.push(...instance.data);
     return instance;
   };
-  const findRoutine = async (value, field = "id") => {
+  const findRoutine = async (value, field) => {
     const instance = await findData(field, value);
     routine.value = instance.data;
     return instance;
@@ -64,7 +64,7 @@ export function useNewRoutine() {
    return res;
   }
 
-  const deleteRoutine = async (value, field = id) => {
+  const deleteRoutine = async (value, field) => {
     const { deleteData } = useQuery("routines");
     const res = await deleteData(field, value);
     return res;

@@ -12,7 +12,7 @@ describe("supabase_class", () => {
   it("test_role_true", () => {
     const user = { role: "admin" };
     localStorage.setItem("zfitLoggedUser", JSON.stringify(user));
-    const role = userRole("admin");
+    const role = userRole(["admin"]);
     localStorage.removeItem('zfitLoggedUser')
     expect(role).toEqual(true);
   });
@@ -21,7 +21,7 @@ describe("supabase_class", () => {
   it("test_role_false", () => {
     const user = { role: "admin" };
     localStorage.setItem("zfitLoggedUser", JSON.stringify(user));
-    const role = userRole("user");
+    const role = userRole(["user"]);
     localStorage.removeItem('zfitLoggedUser')
     expect(role).toEqual(false);
   });

@@ -42,7 +42,7 @@
                 class="cursor-pointer"
                 router-direction="forward"
                 :router-link="`/pages/${r.path}`"
-                v-if="$userRole(r.role)"
+                v-if="$userRole([r.role])"
               >
                 <ion-menu-toggle :auto-hide="false">
                   <ion-item lines="none" :detail="false" class="hydrated">

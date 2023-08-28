@@ -1,7 +1,7 @@
 import { presentConfirm, loading, useModal } from "../../../src/utils/helper";
 import { modalController } from "@ionic/vue";
 
-describe('test_helperFuntion',()=>{
+describe('test_helperFunction',()=>{
     
     //Test that present confirm works
     it("Alert must be presented",async()=>{
@@ -11,8 +11,10 @@ describe('test_helperFuntion',()=>{
 
     //Test that loading works
     it("Loading must be presented",async()=>{
-        const load=await loading();
+        const load=await loading(true);
         expect(load.presented).toBe(true);
+        const unload=await loading(false);
+        expect(unload.presented).toBe(false);
     })
 
     //Test that loadin dismiss works

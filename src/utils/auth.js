@@ -1,7 +1,7 @@
 import { ref, reactive } from "vue";
 import { supabase } from "@/utils/supabase";
 import EventBus from "@/utils/eventBus";
-import {  loadingController } from "@ionic/vue";
+import { loadingController } from "@ionic/vue";
 
 export function useLogin() {
   const user = reactive({
@@ -14,10 +14,10 @@ export function useLogin() {
   const onModalDidPresent = () => {
     user.email = null;
     user.password = null;
-    const oldUser = JSON.parse(localStorage.getItem("zfitUser"))||{};
-    user.email = oldUser.email ;
-    user.password = oldUser.password ;
-    user.remember =  oldUser.remember;
+    const oldUser = JSON.parse(localStorage.getItem("zfitUser")) || {};
+    user.email = oldUser.email;
+    user.password = oldUser.password;
+    user.remember = oldUser.remember;
     isOpen.value = true;
   };
 
@@ -27,9 +27,12 @@ export function useLogin() {
       email: user.email,
       password: user.password,
     });
-    user.remember
-      ? localStorage.setItem("zfitUser", JSON.stringify(user))
-      : localStorage.removeItem("zfitUser");
+    if (user.remember) {
+      localStorage.setItem("zfitUser", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("zfitUser");
+    }
+
     await getUser();
     loading.dismiss();
     return instance.error ? instance.error.message : "Bienvenido";
@@ -95,49 +98,48 @@ export function useSignup() {
   };
 
   const handleSignup = async () => {
-    const loading = await showLoading();
-    let logInstance = await supabase.auth.signUp({
-      email: user.email,
-      password: user.password,
-    });
-    const allowedRoles = ["user", "admin", "client", "trainer"];
-    if (!allowedRoles.includes(user.role) || !user.role) {
-      user.role = "user";
-    }
-    const newUser = logInstance.data.user;
-    const res = await supabase.rpc("create_user_and_contact", {
-      name: user.name,
-      email: user.email,
-      role: user.role || "user",
-      user_id: newUser.id,
-    });
+    try {
+      const loading = await showLoading();
+      let logInstance = await supabase.auth.signUp({
+        email: user.email,
+        password: user.password,
+      });
+      const allowedRoles = ["user", "admin", "client", "trainer"];
+      if (!allowedRoles.includes(user.role) || !user.role) {
+        user.role = "user";
+      }
+      const newUser = logInstance.data.user;
+      const res = await supabase.rpc("create_user_and_contact", {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        user_id: newUser.id,
+      });
 
-    loading.dismiss();
-    const response =
-      newUser.identities.length == 0
-        ? {
-            message: "Este usuario ya existe",
-            status: 422,
-            error: "Existing mail",
-          }
-        : res.error
-        ? {
-            message: res.error.message,
-            status: 501,
-            error: "Error al crear usuario",
-          }
-        : logInstance.error
-        ? {
-            message: "Se ha enviado un correo de confirmación",
-            status: 200,
-            error: null,
-          }
-        : {
-            message: logInstance.error.message,
-            status: 500,
-            error: "Error al crear cuenta",
-          };
-    return response;
+      loading.dismiss();
+      var response = null;
+      if (newUser.identities.length === 0) {
+        response = {
+          message: "Este usuario ya existe",
+          status: 422,
+          error: "Existing email",
+        };
+      } else {
+        response = {
+          message: "Se ha enviado un correo de confirmación",
+          status: 200,
+          error: null,
+        };
+      }
+
+      return response;
+    } catch (error) {
+      return {
+        message: error.message,
+        status: 501,
+        error: "Error al crear usuario",
+      };
+    }
   };
 
   return { rules, user, isOpen, handleSignup, onModalDidPresent };
@@ -152,7 +154,7 @@ const showLoading = async () => {
 };
 export const getUser = async () => {
   const user = {};
-  
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -171,9 +173,9 @@ export const getUser = async () => {
     user.price = relatedUser.data?.price || 0;
     user.start_date = relatedUser.data?.start_date;
     user.height = relatedUser.data?.height;
-    user.role = relatedUser.data?.role || "user";
+    user.role = relatedUser.data?.role;
     user.relatedUser_id = relatedUser.data?.id;
     localStorage.setItem("zfitLoggedUser", JSON.stringify(user));
-    EventBus.emit('userChanged', user)
+    EventBus.emit("userChanged", user);
   }
 };

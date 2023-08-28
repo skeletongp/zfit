@@ -99,7 +99,7 @@ import { useNewFood, useFoods } from "@/utils/foods";
 import { add, close } from "ionicons/icons";
 import { filterOption, onSuggest } from "@/utils/parse";
 const isOpen = ref(false);
-const { food, rules, groups, nutrients, saveFood } = useNewFood();
+const { food, rules, groups, nutrients, saveFood, resetFood } = useNewFood();
 const { params, getFoods } = useFoods();
 const options = ref([]);
 const foods = ref([]);
@@ -131,6 +131,7 @@ const onFinish = async () => {
   const res = await saveFood();
 
   if (res) {
+    resetFood();
     closeModal();
     setTimeout(() => {
       emit("onSave");

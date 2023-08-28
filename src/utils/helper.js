@@ -1,10 +1,10 @@
 import { alertController } from "@ionic/vue";
 import { loadingController } from "@ionic/vue";
-import {ref} from "vue"
+import { ref } from "vue";
 const presentConfirm = async (
   header,
-  subheader = "",
-  message = "",
+  subheader,
+  message,
   buttons = ["Ok"]
 ) => {
   const alert = await alertController.create({
@@ -30,25 +30,25 @@ const pageRange = (page, perpage) => {
   return fileBlob;
 }; */
 const loading = async (state = true, message = "Cargando...") => {
-
-    const loadingElement = document.querySelector("ion-loading");
-    if (loadingElement ) {
-      loadingElement.dismiss();
-      return loadingElement;
-    } else if(state) {
-      const loading = await loadingController.create({
-        message,
-        duration: 0,
-      });
-      loading.present();
-      return loading;
-    }
+  const loadingElement = document.querySelector("ion-loading");
+  var returnElement = null;
+  if (loadingElement) {
+    loadingElement.dismiss();
+    returnElement = loadingElement;
+  } else {
+    const loading = await loadingController.create({
+      message,
+      duration: 0,
+    });
+    loading.present();
+    returnElement = loading;
+  }
+  return returnElement;
 };
 
-
-export function useModal(){
+export function useModal() {
   const isOpen = ref(false);
-  const onModalDidPresent = async() => {
+  const onModalDidPresent = async () => {
     isOpen.value = true;
   };
 
@@ -64,7 +64,12 @@ export function useModal(){
     isOpen.value = false;
   };
 
-  return {isOpen, openModal, closeModal, onModalDidDismiss, onModalDidPresent}
-
+  return {
+    isOpen,
+    openModal,
+    closeModal,
+    onModalDidDismiss,
+    onModalDidPresent,
+  };
 }
-export { presentConfirm,  loading };
+export { presentConfirm, loading };

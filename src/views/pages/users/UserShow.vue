@@ -107,7 +107,7 @@ const isActive = (view) => {
 
 const initialize = async () => {
   const id = route.params.id;
-  await findUser(id);
+  await findUser(id, "id");
   await getWeight(id);
 };
 const editPhotoUser = async (photo) => {
