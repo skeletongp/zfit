@@ -42,7 +42,7 @@
                 class="cursor-pointer"
                 router-direction="forward"
                 :router-link="`/pages/${r.path}`"
-                v-if="$userRole([r.role])"
+                v-if="$userRole(r.role)"
               >
                 <ion-menu-toggle :auto-hide="false">
                   <ion-item lines="none" :detail="false" class="hydrated">
@@ -96,7 +96,7 @@
               ></ion-back-button>
               <router-link router-direction="forward" v-else to="/pages/profile">
                 <ion-avatar>
-                  <img :src="user.photo" class="rounded-full !w-6 !h-6" />
+                  <img src="@/assets/icon.png" class="rounded-full !w-8 !h-8" />
                 </ion-avatar>
               </router-link>
             </ion-buttons>

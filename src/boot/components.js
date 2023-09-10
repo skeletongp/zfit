@@ -69,7 +69,6 @@ import {
   IonSplitPane,
   IonCheckbox,
 } from "@ionic/vue";
-
 function addComponent(app) {
   app.component("IonApp", IonApp);
   app.component("IonPage", IonPage);

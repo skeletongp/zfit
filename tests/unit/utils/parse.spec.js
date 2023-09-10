@@ -28,18 +28,7 @@ describe("parseFuntions", () => {
     });
   });
 
-  //Tests on Suggest return results
-  it("test_on_sugges", () => {
-    const options = [
-      "Juan Pérez Carrasco",
-      "María del Pilar",
-      "Tatiana Castillo",
-      "Miguel de Cervantes",
-    ];
-    const search="ca";
-    const res=parse.onSuggest(options, search);
-    expect(res.length).toEqual(2)
-  });
+  
 
   //Tests that is uploading file
   it("It should upload file", async () => {
@@ -47,7 +36,7 @@ describe("parseFuntions", () => {
       email: import.meta.env.VITE_ADMIN_EMAIL,
       password: import.meta.env.VITE_ADMIN_PASSWORD,
     });
-    const file = await parse.upload(dataURL, "test", true);
+    const file = await parse.upload(dataURL, "icon.png", true);
     expect(typeof file).toEqual("string");
   });
   //Tests that is uploading failed file

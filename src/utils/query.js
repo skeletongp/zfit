@@ -106,6 +106,7 @@ export function useQuery(table = "none") {
   const search = (instance, cols, query) => {
     let stm = "";
     if (query.length > 1) {
+      query=query.replace(/[^a-zA-Z0-9]/g," ")
       const columns = cols.split(",");
       const textcols = query.split(" ");
       textcols.forEach((text) => {

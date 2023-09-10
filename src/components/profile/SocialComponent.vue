@@ -113,7 +113,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from "vue";
 import * as icon from "ionicons/icons";
-import { useSocial } from "@/utils/users";
+import { useSocial } from "@/utils/socials";
 
 const {
   socials,

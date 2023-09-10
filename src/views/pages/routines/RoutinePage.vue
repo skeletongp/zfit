@@ -15,7 +15,7 @@
         slot="fixed"
         vertical="bottom"
         horizontal="end"
-        v-if="$userRole(['admin', 'trainer'])"
+        v-if="userRole(['admin', 'trainer'])"
       >
         <router-link to="/pages/routines/new">
           <ion-fab-button>
@@ -38,9 +38,11 @@
 
 <script setup>
 import { onIonViewDidEnter } from "@ionic/vue";
+import { onMounted } from "vue";
 import { useRoutines } from "@/utils/routines";
 import RoutineCard from "@/components/routines/RoutineCard.vue";
 import { add } from "ionicons/icons";
+import { userRole } from "@/utils/supabase";
 
 const { routines, getRoutines, params, onSearch } = useRoutines();
 
@@ -49,7 +51,7 @@ const onPaginate = async (ev) => {
   await getRoutines();
   setTimeout(() => ev.target.complete(), 500);
 };
-onIonViewDidEnter(async () => {
+onMounted(async () => {
   params.page = 1;
   params.order = "id";
   params.ascend = false;

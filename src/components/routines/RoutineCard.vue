@@ -8,7 +8,7 @@
     >
       <router-link
         :to="'/pages/routines/' + routine.id"
-        class="w-full ellipsis text-contrast font-bold uppercase text-lg"
+        class="w-full ellipsis text-contrast font-bold uppercase text-xl"
       >
         {{ routine.name }}
       </router-link>
@@ -20,7 +20,7 @@
         <a-image :src="routine.image" class="rounded-full !w-16 !h-16" />
       </ion-avatar>
       <p
-        class="line-clamp-4 text-md leading-5 col-span-3"
+        class="line-clamp-4 text-lg leading-5 col-span-3"
         v-html="routine.description"
       ></p>
     </div>

@@ -6,10 +6,10 @@ export function useRoutines(paginate=true) {
   const routines = ref([]);
   const routine= ref(null);
 
-  const getRoutines = async () => {
+  const getRoutines = async (load=true) => {
     params.searchables = "name,description,goal,advantages";
     params.paginate=paginate;
-    const instance = await getData();
+    const instance = await getData(load);
     routines.value.push(...instance.data);
     return instance;
   };
@@ -21,7 +21,7 @@ export function useRoutines(paginate=true) {
 
   const onSearch = async () => {
       routines.value = [];
-     return  await getRoutines();
+     return  await getRoutines(false);
     };
   return { params, routines, getRoutines, findRoutine, routine, onSearch };
 }

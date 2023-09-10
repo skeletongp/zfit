@@ -1,10 +1,10 @@
 import { ref, reactive } from "vue";
 import { useQuery } from "@/utils/query";
-
+import nutrients from "@/vars/nutrients";
 export function useFoods(paginate = true) {
   const { params, getData } = useQuery("foods");
   const foods = ref([]);
-  const getFoods = async (load = true) => {
+  const getFoods = async (load = false) => {
     params.paginate = paginate;
     params.searchables = "name,group";
     const instance = await getData(load);
@@ -23,6 +23,7 @@ export function useFoods(paginate = true) {
   groups.unshift({ label: "Todos", value: null });
   const onSearch = async () => {
     foods.value = [];
+    params.page = 1;
     return await getFoods(false);
   };
   const onOrderBy = async (val) => {
@@ -33,6 +34,7 @@ export function useFoods(paginate = true) {
       params.ascend = true;
     }
     foods.value = [];
+    params.page = 1;
     return await getFoods();
   };
   const onFilterGroup = async (val) => {
@@ -45,6 +47,8 @@ export function useFoods(paginate = true) {
     params.page = 1;
     return await getFoods();
   };
+
+  
   return {
     params,
     foods,
@@ -58,37 +62,11 @@ export function useFoods(paginate = true) {
 }
 
 export function useNewFood() {
-  const { saveData } = useQuery("foods");
+  const { saveData, params } = useQuery("foods");
   const food = reactive({
     name: null,
     group: null,
   });
-  const nutrients = [
-    { name: "Proteínas", label: "Prot." },
-    { name: "Calorías", label: "kCal" },
-    { name: "Carbohidratos", label: "Carb." },
-    { name: "Fibras", label: "Fib." },
-    { name: "Sodio", label: "Sod." },
-    { name: "Calcio", label: "Calc." },
-    { name: "Potasio", label: "Pot." },
-    { name: "Fósforo", label: "Fosf." },
-    { name: "Hierro", label: "Hierro" },
-    { name: "Zinc", label: "Zinc" },
-    { name: "Tiamina", label: "Tiam." },
-    { name: "Rivoflavina", label: "Rivof." },
-    { name: "Niacina", label: "Niac." },
-    { name: "Vitamina_C", label: "Vit. C" },
-    { name: "Energía", label: "Energ." },
-    { name: "Agua", label: "Agua" },
-    { name: "Grasa", label: "Grasa" },
-    { name: "Monoinsaturada", label: "Mono" },
-    { name: "Poliinsaturada", label: "Poli" },
-    { name: "Colesterol", label: "Col." },
-    { name: "Saturada", label: "G. Sat." },
-  ];
-
- 
-
   const rules = {
     name: [
       { required: true, message: "El campo es requerido" },
@@ -118,7 +96,6 @@ export function useNewFood() {
 
   const saveFood = async () => {
     const res = await saveData(food);
-   
     return res;
   };
   const updateFood = async () => {

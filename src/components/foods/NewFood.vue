@@ -41,7 +41,7 @@
               v-model:value="food.name"
               placeholder="Ingrese un nombre"
               :options="options"
-              @search="onSearch"
+              :filter-option="filterOption"
             />
           </a-form-item>
           <a-form-item
@@ -95,14 +95,13 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { useNewFood, useFoods } from "@/utils/foods";
+import { useNewFood } from "@/utils/foods";
 import { add, close } from "ionicons/icons";
-import { filterOption, onSuggest } from "@/utils/parse";
+import { filterOption, useSuggest } from "@/utils/parse";
 const isOpen = ref(false);
 const { food, rules, groups, nutrients, saveFood, resetFood } = useNewFood();
-const { params, getFoods } = useFoods();
-const options = ref([]);
-const foods = ref([]);
+
+const { options, getOptions } = useSuggest();
 const emit = defineEmits(["onSave"]);
 const openModal = () => {
   isOpen.value = true;
@@ -112,19 +111,11 @@ const closeModal = () => {
   isOpen.value = false;
 };
 const onModalPresent = async () => {
-  await getOptions();
+  await getOptions("foods", "name");
   isOpen.value = true;
 };
 const onModalDismiss = () => {
   isOpen.value = false;
-};
-
-const getOptions = async () => {
-  params.paginate = false;
-  params.limit = 200;
-  params.cols = "name";
-  const { data } = await getFoods();
-  foods.value = data.map((dat) => dat.name);
 };
 
 const onFinish = async () => {
@@ -137,9 +128,5 @@ const onFinish = async () => {
       emit("onSave");
     }, 300);
   }
-};
-const onSearch = async () => {
-  const suggests = onSuggest(foods.value, food.name);
-  options.value = suggests;
 };
 </script>

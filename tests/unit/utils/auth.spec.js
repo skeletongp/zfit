@@ -3,7 +3,10 @@ import supabase from "../../../src/utils/supabase";
 import validate from "../validate";
 
 describe("signupFunction", () => {
-  //Tests that rules has items
+  beforeEach(async () => {
+    await supabase.auth.signOut();
+  });
+  
  //Tests that rules has same props as user
  it('rules_initialized',()=>{
   const {rules, user}=useSignup();
@@ -116,7 +119,9 @@ describe("signupFunction", () => {
 
 
 describe('loginFunction', ()=>{
-
+  beforeEach(async () => {
+    await supabase.auth.signOut();
+  });
   //Tests that user is initialized
   it("test_user_initialized", () => {
     const { user } = useLogin();

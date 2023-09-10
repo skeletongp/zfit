@@ -15,19 +15,21 @@
     </h1>
   </div>
   <div class="flex flex-col space-y-6 px-1 pt-4">
-    <div class="grid grid-cols-6 gap-x-2 items-center">
-      <h1 class="uppercase col-span-1 font-bold text-contrast opacity-80">Obj.:</h1>
+    <div class="grid grid-cols-6 gap-x-2 items-center text-base">
+      <h1 class="uppercase col-span-1 text-base font-bold text-contrast opacity-80">
+        Obj.:
+      </h1>
       <h1 class="col-span-5 text-base leading-5 line-clamp-3">
         {{ routine.goal }}
       </h1>
     </div>
-    <div class="grid grid-cols-6 gap-x-2 items-center">
+    <div class="grid grid-cols-6 gap-x-2 items-cente text-base">
       <h1 class="uppercase col-span-1 font-bold text-contrast opacity-80">Edad:</h1>
       <h1 class="col-span-2">{{ routine.range }}</h1>
       <h1 class="uppercase col-span-1 font-bold text-contrast opacity-80">Peso:</h1>
       <h1 class="col-span-2">{{ routine.body }}</h1>
     </div>
-    <div class="grid grid-cols-6 gap-2 items-center">
+    <div class="grid grid-cols-6 gap-2 items-center text-base">
       <h1 class="uppercase col-span-2 font-bold text-contrast opacity-80">Detalles:</h1>
       <h1 class="col-span-6 list-decimal text-base" v-html="routine.description" />
     </div>

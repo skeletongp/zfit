@@ -114,7 +114,7 @@ const getUser = async () => {
   const userStore = useUserStore();
   const id = userStore.getUser.id;
   params.cols = "*, contacts(*)";
-  await findUser(id);
+  await findUser(id, "id");
   await getWeight(id);
 };
 

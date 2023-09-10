@@ -6,13 +6,14 @@
           <ion-searchbar
             v-model="params.search"
             @ionInput="onSearch"
-            :debounce="300"
+            :debounce="500"
             placeholder="Buscar"
             class="col-span-2 mb-2"
             :animated="true"
           />
           <a-select
             class="w-full"
+            size="large"
             placeholder="Ordenar por"
             :options="orderables"
             v-model:value="params.orderBy"
@@ -24,6 +25,7 @@
             </template>
           </a-select>
           <a-select
+            size="large"
             class="w-full"
             placeholder="Todos"
             :options="groups"
@@ -60,7 +62,7 @@
           <ion-infinite-scroll-content></ion-infinite-scroll-content>
         </ion-infinite-scroll>
       </ion-list>
-      <empty-card v-else :duration="1500" />
+      <empty-list v-else :duration="2000" />
     </ion-content>
   </ion-page>
 </template>

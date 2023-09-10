@@ -68,7 +68,7 @@
 import { onMounted } from "vue";
 import * as icon from "ionicons/icons";
 import { useModal } from "@/utils/helper";
-import { useResetPassword } from "@/utils/users";
+import { useResetPassword } from "@/utils/resetPassword";
 import { mdiCloseCircleOutline } from "@mdi/js";
 const { user, rules, resetPassword } = useResetPassword();
 const {
