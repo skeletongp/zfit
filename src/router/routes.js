@@ -90,6 +90,16 @@ const routes = [
           title: "Alimentos ",
         },
       },
+       /* Diets */
+       {
+        path: "diets/",
+        name: "diets",
+        component: () => import("@/views/pages/diets/DietPage.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Recetas ",
+        },
+      },
     ],
   },
 

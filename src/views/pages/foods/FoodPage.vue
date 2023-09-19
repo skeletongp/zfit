@@ -40,6 +40,9 @@
     </ion-header>
     <ion-content class="ion-padding">
       <NewFood v-if="$userRole(['admin'])" @onSave="onReset" />
+      <div class="flex justify-end">
+        <ion-button class="font-bold">Recetas</ion-button>
+      </div>
       <ion-list v-if="foods.length > 0">
         <ion-item
           v-for="food in foods"
@@ -68,10 +71,8 @@
 </template>
 <script setup>
 import { onMounted } from "vue";
-import { onIonViewDidEnter } from "@ionic/vue";
 import { CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons-vue";
 import NewFood from "@/components/foods/NewFood.vue";
-import EditFood from "@/components/foods/EditFood.vue";
 import NutritionData from "@/components/foods/NutritionData.vue";
 import { useFoods } from "@/utils/foods";
 
@@ -96,13 +97,7 @@ const onPaginate = async (ev) => {
   await getFoods();
   setTimeout(() => ev.target.complete(), 500);
 };
-onIonViewDidEnter(async () => {
-  params.perPage = 15;
-  params.orderBy = "name";
-  params.page = 1;
-  foods.value = [];
-  await getFoods();
-});
+
 onMounted(async () => {
   params.page = 1;
   foods.value = [];

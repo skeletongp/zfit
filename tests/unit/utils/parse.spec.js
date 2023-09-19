@@ -2,6 +2,8 @@ import * as parse from "../../../src/utils/parse";
 import supabase from "../../../src/utils/supabase";
 
 describe("parseFuntions", () => {
+
+  
   //Tests thast returning object with integers
   it("test_pagination", () => {
     const { from, to } = parse.getPagination(1, 10);
@@ -28,11 +30,9 @@ describe("parseFuntions", () => {
     });
   });
 
-  
-
   //Tests that is uploading file
   it("It should upload file", async () => {
-    await supabase.auth.signInWithPassword({
+   const instance= await supabase.auth.signInWithPassword({
       email: import.meta.env.VITE_ADMIN_EMAIL,
       password: import.meta.env.VITE_ADMIN_PASSWORD,
     });
@@ -50,17 +50,17 @@ describe("parseFuntions", () => {
   });
 
   //Test that cand delete file
-  it('Should delete a file', async()=>{
+  it("Should delete a file", async () => {
     await supabase.auth.signInWithPassword({
       email: import.meta.env.VITE_ADMIN_EMAIL,
       password: import.meta.env.VITE_ADMIN_PASSWORD,
     });
-    const fileId="test";
-    const res=await parse.removeFile(fileId);
-    const res2=await parse.removeFile([fileId]);
+    const fileId = "testi";
+    const res = await parse.removeFile(fileId);
+    const res2 = await parse.removeFile([fileId]);
     expect(res.error).toBeNull();
     expect(res2.error).toBeNull();
-  })
+  });
 
   //Tests that present loading
   it("test_loading", async () => {

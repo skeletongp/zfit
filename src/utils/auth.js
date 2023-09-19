@@ -113,7 +113,7 @@ export function useSignup() {
         name: user.name,
         email: user.email,
         role: user.role,
-        user_id: newUser.id,
+        user_id: newUser?.id,
       });
 
       loading.dismiss();
@@ -131,7 +131,6 @@ export function useSignup() {
           error: null,
         };
       }
-
       return response;
     } catch (error) {
       return {

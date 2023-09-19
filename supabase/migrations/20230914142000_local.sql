@@ -24,22 +24,24 @@ CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
-CREATE FUNCTION "public"."create_profile_and_contact"("name" "text", "email" "text", "password" "text", "user_id" "uuid") RETURNS "void"
+
+
+CREATE FUNCTION "public"."create_user_and_contact"("name" "text", "email" "text", "role" "text", "user_id" "uuid") RETURNS "void"
     LANGUAGE "plpgsql"
     AS $$
-DECLARE
-  profile_id integer;
 BEGIN
   -- Iniciamos una transacción implícita al insertar en las tablas
   BEGIN
-    -- Insertamos en la tabla profiles
-    INSERT INTO profiles (user_id, name, role)
-    VALUES (user_id, name, 'user')
-    RETURNING id INTO profile_id;
+      -- Insertamos en la tabla profiles
+    INSERT INTO users (id, name, role, email)
+    VALUES (user_id, name, role, email) 
+    ON CONFLICT (id) DO NOTHING;
 
     -- Insertamos en la tabla contacts
     INSERT INTO contacts (user_id, name, url, username, icon)
-    VALUES (user_id, 'Email', 'mailto:' || email, email, 'mailOpenOutline');
+    VALUES (user_id, 'Email', 'mailto:' || email, email, 'mailOpenOutline')ON CONFLICT (url) DO NOTHING
+    
+    ;
 
     -- Si todo fue exitoso, la transacción se confirma automáticamente
   EXCEPTION
@@ -50,59 +52,83 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION "public"."create_profile_and_contact"("name" "text", "email" "text", "password" "text", "user_id" "uuid") OWNER TO "postgres";
+ALTER FUNCTION "public"."create_user_and_contact"("name" "text", "email" "text", "role" "text", "user_id" "uuid") OWNER TO "postgres";
 
 CREATE FUNCTION "public"."is_admin"() RETURNS boolean
-    LANGUAGE "plpgsql"
-    AS $$BEGIN
-return (
-  select exists(
-    select 1 from profiles where user_id=auth.uid()
-    and role='admin'
-  )
-);
-END$$;
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    es_admin boolean;
+BEGIN
+    SELECT role = 'admin' INTO es_admin FROM users WHERE id = auth.uid();
+    RETURN es_admin;
+END;
+$$;
 
 ALTER FUNCTION "public"."is_admin"() OWNER TO "postgres";
 
 CREATE FUNCTION "public"."is_client"() RETURNS boolean
-    LANGUAGE "plpgsql"
-    AS $$BEGIN
-return (
-  select exists(
-    select 1 from profiles where user_id=auth.uid()
-    and role='client'
-  )
-);
-END$$;
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    es_client boolean;
+BEGIN
+    SELECT role = 'client' INTO es_client FROM users WHERE id = auth.uid();
+    RETURN es_client;
+END;
+$$;
 
 ALTER FUNCTION "public"."is_client"() OWNER TO "postgres";
 
 CREATE FUNCTION "public"."is_trainer"() RETURNS boolean
-    LANGUAGE "plpgsql"
-    AS $$BEGIN
-return (
-  select exists(
-    select 1 from profiles where user_id=auth.uid()
-    and role='trainer'
-  )
-);
-END$$;
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    es_trainer boolean;
+BEGIN
+    SELECT role = 'trainer' INTO es_trainer FROM users WHERE id = auth.uid();
+    RETURN es_trainer;
+END;
+$$;
 
 ALTER FUNCTION "public"."is_trainer"() OWNER TO "postgres";
 
 CREATE FUNCTION "public"."is_user"() RETURNS boolean
-    LANGUAGE "plpgsql"
-    AS $$BEGIN
-return (
-  select exists(
-    select 1 from profiles where user_id=auth.uid()
-    and role='user'
-  )
-);
-END$$;
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    es_user boolean;
+BEGIN
+    SELECT role = 'user' INTO es_user FROM users WHERE id = auth.uid();
+    RETURN es_user;
+END;
+$$;
 
 ALTER FUNCTION "public"."is_user"() OWNER TO "postgres";
+
+CREATE FUNCTION "public"."remove_user"("user_id" "uuid") RETURNS "void"
+    LANGUAGE "sql"
+    AS $$delete from public.users where id=user_id$$;
+
+ALTER FUNCTION "public"."remove_user"("user_id" "uuid") OWNER TO "postgres";
+
+CREATE FUNCTION "public"."set_trainer_id"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  IF (is_admin() OR is_trainer()) THEN
+    NEW.trainer_id = auth.uid();
+  ELSIF (is_client()) THEN
+    NEW.user_id = auth.uid();
+  ELSIF (is_user()) THEN
+    NEW.user_id = auth.uid();
+    NEW.privacy = 'public';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION "public"."set_trainer_id"() OWNER TO "postgres";
 
 SET default_tablespace = '';
 
@@ -141,6 +167,73 @@ CREATE TABLE "public"."dietfoods" (
 
 ALTER TABLE "public"."dietfoods" OWNER TO "postgres";
 
+CREATE TABLE "public"."foods" (
+    "id" bigint NOT NULL,
+    "name" "text" NOT NULL,
+    "group" "text" NOT NULL,
+    "Proteínas" double precision NOT NULL,
+    "Calorías" double precision NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "unit" "text" DEFAULT '100 g'::"text" NOT NULL,
+    "trainer_id" "uuid" DEFAULT "auth"."uid"(),
+    "Carbohidratos" double precision NOT NULL,
+    "Fibras" double precision NOT NULL,
+    "Sodio" double precision NOT NULL,
+    "Calcio" double precision NOT NULL,
+    "Potasio" bigint NOT NULL,
+    "Fósforo" double precision NOT NULL,
+    "Hierro" double precision NOT NULL,
+    "Zinc" double precision NOT NULL,
+    "Tiamina" double precision NOT NULL,
+    "Rivoflavina" double precision NOT NULL,
+    "Niacina" double precision NOT NULL,
+    "Vitamina_C" double precision NOT NULL,
+    "Energía" double precision NOT NULL,
+    "Agua" double precision NOT NULL,
+    "Grasa" double precision NOT NULL,
+    "Monoinsaturada" double precision NOT NULL,
+    "Poliinsaturada" double precision NOT NULL,
+    "Colesterol" double precision NOT NULL,
+    "Saturada" double precision NOT NULL
+);
+
+ALTER TABLE "public"."foods" OWNER TO "postgres";
+
+CREATE VIEW "public"."dfview" AS
+ SELECT "df"."id",
+    "df"."cant",
+    "df"."food_id",
+    "df"."diet_id",
+    "df"."created_at",
+    "df"."updated_at",
+    "f"."name" AS "food",
+    (("df"."cant" / (100)::double precision) * "f"."Calcio") AS "Calcio",
+    (("df"."cant" / (100)::double precision) * "f"."Sodio") AS "Sodio",
+    (("df"."cant" / (100)::double precision) * ("f"."Potasio")::double precision) AS "Potasio",
+    (("df"."cant" / (100)::double precision) * "f"."Calorías") AS "Calorías",
+    (("df"."cant" / (100)::double precision) * "f"."Proteínas") AS "Proteínas",
+    (("df"."cant" / (100)::double precision) * "f"."Carbohidratos") AS "Carbohidratos",
+    (("df"."cant" / (100)::double precision) * "f"."Fibras") AS "Fibras",
+    (("df"."cant" / (100)::double precision) * "f"."Fósforo") AS "Fósforo",
+    (("df"."cant" / (100)::double precision) * "f"."Hierro") AS "Hierro",
+    (("df"."cant" / (100)::double precision) * "f"."Zinc") AS "Zinc",
+    (("df"."cant" / (100)::double precision) * "f"."Tiamina") AS "Tiamina",
+    (("df"."cant" / (100)::double precision) * "f"."Rivoflavina") AS "Rivoflavina",
+    (("df"."cant" / (100)::double precision) * "f"."Niacina") AS "Niacina",
+    (("df"."cant" / (100)::double precision) * "f"."Vitamina_C") AS "Vitamina_C",
+    (("df"."cant" / (100)::double precision) * "f"."Energía") AS "Energía",
+    (("df"."cant" / (100)::double precision) * "f"."Agua") AS "Agua",
+    (("df"."cant" / (100)::double precision) * "f"."Grasa") AS "Grasa",
+    (("df"."cant" / (100)::double precision) * "f"."Monoinsaturada") AS "Monoinsaturada",
+    (("df"."cant" / (100)::double precision) * "f"."Poliinsaturada") AS "Poliinsaturada",
+    (("df"."cant" / (100)::double precision) * "f"."Colesterol") AS "Colesterol",
+    (("df"."cant" / (100)::double precision) * "f"."Saturada") AS "Saturada"
+   FROM ("public"."dietfoods" "df"
+     JOIN "public"."foods" "f" ON (("df"."food_id" = "f"."id")));
+
+ALTER TABLE "public"."dfview" OWNER TO "postgres";
+
 ALTER TABLE "public"."dietfoods" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
     SEQUENCE NAME "public"."dieetfoods_id_seq"
     START WITH 1
@@ -156,10 +249,12 @@ CREATE TABLE "public"."diets" (
     "goal" "text" NOT NULL,
     "proteins" double precision NOT NULL,
     "calories" double precision NOT NULL,
-    "trainer_id" "uuid" NOT NULL,
+    "trainer_id" "uuid",
     "user_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "name" "text" NOT NULL,
+    "privacy" "text"
 );
 
 ALTER TABLE "public"."diets" OWNER TO "postgres";
@@ -214,19 +309,27 @@ ALTER TABLE "public"."evals" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENT
     CACHE 1
 );
 
-CREATE TABLE "public"."foods" (
+CREATE TABLE "public"."favorites" (
     "id" bigint NOT NULL,
-    "name" "text" NOT NULL,
-    "group" "text" NOT NULL,
-    "proteins" double precision NOT NULL,
-    "calories" double precision NOT NULL,
+    "title" "text" NOT NULL,
+    "fave_type" "text" NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "fave_id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    "unit" "text" DEFAULT '100 g'::"text" NOT NULL,
-    "trainer_id" "uuid" DEFAULT "auth"."uid"()
+    "image" "text"
 );
 
-ALTER TABLE "public"."foods" OWNER TO "postgres";
+ALTER TABLE "public"."favorites" OWNER TO "postgres";
+
+ALTER TABLE "public"."favorites" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."favorites_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 ALTER TABLE "public"."foods" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
     SEQUENCE NAME "public"."foods_id_seq"
@@ -251,34 +354,6 @@ ALTER TABLE "public"."measures" OWNER TO "postgres";
 
 ALTER TABLE "public"."measures" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
     SEQUENCE NAME "public"."measures_id_seq"
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-CREATE TABLE "public"."profiles" (
-    "id" bigint NOT NULL,
-    "name" "text" NOT NULL,
-    "address" "text",
-    "start_date" "date",
-    "price" double precision DEFAULT '0'::double precision,
-    "height" double precision,
-    "birthdate" "date",
-    "photo" "text",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "deleted_at" timestamp with time zone,
-    "user_id" "uuid",
-    "role" "text" DEFAULT 'user'::"text" NOT NULL,
-    "trainer_id" "uuid"
-);
-
-ALTER TABLE "public"."profiles" OWNER TO "postgres";
-
-ALTER TABLE "public"."profiles" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."profiles_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -313,8 +388,30 @@ ALTER TABLE "public"."routines" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS ID
     CACHE 1
 );
 
+CREATE TABLE "public"."users" (
+    "name" "text" NOT NULL,
+    "address" "text",
+    "start_at" "date",
+    "price" double precision DEFAULT '0'::double precision,
+    "height" double precision,
+    "birthdate" "date",
+    "photo" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "deleted_at" timestamp with time zone,
+    "role" "text" DEFAULT 'user'::"text" NOT NULL,
+    "trainer_id" "uuid",
+    "email" "text" NOT NULL,
+    "id" "uuid" NOT NULL
+);
+
+ALTER TABLE "public"."users" OWNER TO "postgres";
+
 ALTER TABLE ONLY "public"."contacts"
     ADD CONSTRAINT "contacts_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."contacts"
+    ADD CONSTRAINT "contacts_url_key" UNIQUE ("url");
 
 ALTER TABLE ONLY "public"."dietfoods"
     ADD CONSTRAINT "dieetfoods_pkey" PRIMARY KEY ("id");
@@ -328,20 +425,25 @@ ALTER TABLE ONLY "public"."evalphotos"
 ALTER TABLE ONLY "public"."evals"
     ADD CONSTRAINT "evals_pkey" PRIMARY KEY ("id");
 
+ALTER TABLE ONLY "public"."favorites"
+    ADD CONSTRAINT "favorites_pkey" PRIMARY KEY ("id");
+
 ALTER TABLE ONLY "public"."foods"
     ADD CONSTRAINT "foods_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."measures"
     ADD CONSTRAINT "measures_pkey" PRIMARY KEY ("id");
 
-ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
-
 ALTER TABLE ONLY "public"."routines"
     ADD CONSTRAINT "routines_pkey" PRIMARY KEY ("id");
 
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
+
+CREATE TRIGGER "before_insert_diets" BEFORE INSERT ON "public"."diets" FOR EACH ROW EXECUTE FUNCTION "public"."set_trainer_id"();
+
 ALTER TABLE ONLY "public"."contacts"
-    ADD CONSTRAINT "contacts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "contacts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."dietfoods"
     ADD CONSTRAINT "dietfoods_diet_id_fkey" FOREIGN KEY ("diet_id") REFERENCES "public"."diets"("id") ON DELETE CASCADE;
@@ -364,63 +466,73 @@ ALTER TABLE ONLY "public"."evals"
 ALTER TABLE ONLY "public"."evals"
     ADD CONSTRAINT "evals_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
+ALTER TABLE ONLY "public"."favorites"
+    ADD CONSTRAINT "favorites_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
 ALTER TABLE ONLY "public"."foods"
     ADD CONSTRAINT "foods_trainer_id_fkey" FOREIGN KEY ("trainer_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."measures"
     ADD CONSTRAINT "measures_eval_id_fkey" FOREIGN KEY ("eval_id") REFERENCES "public"."evals"("id") ON DELETE CASCADE;
 
-ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_trainer_id_fkey" FOREIGN KEY ("trainer_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
-
-ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
 ALTER TABLE ONLY "public"."routines"
     ADD CONSTRAINT "routines_trainer_id_fkey" FOREIGN KEY ("trainer_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_trainer_id_fkey" FOREIGN KEY ("trainer_id") REFERENCES "auth"."users"("id");
+
+CREATE POLICY "Admin and Trainer can insert food" ON "public"."foods" FOR INSERT TO "authenticated" WITH CHECK (("public"."is_admin"() OR "public"."is_trainer"()));
+
+CREATE POLICY "Admin can delete contact" ON "public"."contacts" FOR DELETE TO "authenticated", "anon" USING ("public"."is_admin"());
+
 CREATE POLICY "Admin can delete evalphoto" ON "public"."evalphotos" FOR DELETE TO "authenticated" USING ("public"."is_admin"());
 
-CREATE POLICY "Admin can delete food" ON "public"."foods" FOR DELETE TO "authenticated" USING ("public"."is_admin"());
+CREATE POLICY "Admin can delete food" ON "public"."foods" FOR DELETE TO "authenticated" USING (("public"."is_admin"() OR ("trainer_id" = "auth"."uid"())));
 
-CREATE POLICY "Admin can insert eval" ON "public"."evals" FOR INSERT TO "authenticated" WITH CHECK (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin can delete users" ON "public"."users" FOR DELETE TO "authenticated" USING ("public"."is_admin"());
 
-CREATE POLICY "Admin can insert food" ON "public"."foods" FOR INSERT TO "authenticated" WITH CHECK (( "public"."is_trainer"()));
+CREATE POLICY "Admin can insert eval" ON "public"."evals" FOR INSERT TO "authenticated" WITH CHECK (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
 
-CREATE POLICY "Admin can insert routine" ON "public"."routines" FOR INSERT TO "authenticated" WITH CHECK (( "public"."is_trainer"()));
+CREATE POLICY "Admin can insert routine" ON "public"."routines" FOR INSERT TO "authenticated" WITH CHECK (("public"."is_admin"() OR "public"."is_trainer"()));
 
 CREATE POLICY "Admin can update food" ON "public"."foods" FOR UPDATE TO "authenticated" USING ("public"."is_admin"());
 
-CREATE POLICY "Admin or Trainer Prop can delete routine" ON "public"."routines" FOR DELETE TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin or Trainer Prop can delete routine" ON "public"."routines" FOR DELETE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
 
-CREATE POLICY "Admin or Trainer Proper can edit routine" ON "public"."routines" FOR UPDATE TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin or Trainer Proper can edit routine" ON "public"."routines" FOR UPDATE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
 
-CREATE POLICY "Admin or Trainer can delete eval" ON "public"."evals" FOR DELETE TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin or Trainer can delete eval" ON "public"."evals" FOR DELETE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
 
-CREATE POLICY "Admin or Trainer can delete measure" ON "public"."measures" FOR DELETE TO "authenticated" USING (( "public"."is_trainer"()));
+CREATE POLICY "Admin or Trainer can delete measure" ON "public"."measures" FOR DELETE TO "authenticated" USING (("public"."is_admin"() OR "public"."is_trainer"()));
 
-CREATE POLICY "Admin or Trainer can edit eval" ON "public"."evals" FOR UPDATE TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin or Trainer can edit eval" ON "public"."evals" FOR UPDATE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
 
-CREATE POLICY "Admin or Trainer or Client can insert diet" ON "public"."diets" FOR INSERT TO "authenticated" WITH CHECK (( "public"."is_trainer"() OR ("public"."is_client"() AND (( SELECT "profiles"."trainer_id"
-   FROM "public"."profiles"
-  WHERE ("profiles"."user_id" = "auth"."uid"())
- LIMIT 1) <> NULL::"uuid"))));
+CREATE POLICY "Admin or Trainer or Proper can delete diet" ON "public"."diets" FOR DELETE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR ("user_id" = "auth"."uid"())));
 
-CREATE POLICY "Admin or Trainer proper can delete diet" ON "public"."diets" FOR DELETE TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin or proper can edit contact" ON "public"."contacts" FOR UPDATE TO "authenticated" USING ((("user_id" = "auth"."uid"()) OR "public"."is_admin"()));
 
-CREATE POLICY "Admin or proper can edit contact" ON "public"."contacts" FOR UPDATE TO "authenticated" USING (( ("user_id" = "auth"."uid"())));
+CREATE POLICY "Admin or proper can read diet" ON "public"."diets" FOR SELECT TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR ("public"."is_client"() AND (("user_id" = "auth"."uid"()) OR ("privacy" = 'public'::"text") OR (("privacy" = 'private'::"text") AND ("trainer_id" IN ( SELECT "users"."trainer_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"())))))) OR ("public"."is_user"() AND ("privacy" = 'public'::"text"))));
 
-CREATE POLICY "Admin or proper can read diet" ON "public"."diets" FOR SELECT TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR (("public"."is_client"() AND ("user_id" = "auth"."uid"())) OR ((NOT "public"."is_user"()) AND ("user_id" = NULL::"uuid")))));
+CREATE POLICY "Admin or trainer proper can edit diet" ON "public"."diets" FOR UPDATE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR ("user_id" = "auth"."uid"())));
 
-CREATE POLICY "Admin or trainer proper can edit diet" ON "public"."diets" FOR UPDATE TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"()))));
+CREATE POLICY "Admin, trainer or proper can read eval" ON "public"."evals" FOR SELECT TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR ("user_id" = "auth"."uid"())));
 
-CREATE POLICY "Admin, trainer or proper can read eval" ON "public"."evals" FOR SELECT TO "authenticated" USING (( ("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR ("user_id" = "auth"."uid"())));
+CREATE POLICY "All users can insert diet" ON "public"."diets" FOR INSERT TO "authenticated" WITH CHECK (true);
 
-CREATE POLICY "All can insert profile" ON "public"."profiles" FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can insert user" ON "public"."users" FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Anyone can't edit evalphotos" ON "public"."evalphotos" FOR UPDATE USING (false);
 
-CREATE POLICY "Auth can read contact" ON "public"."contacts" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Anyone insert contact" ON "public"."contacts" FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Auth and Not User Can Insert" ON "public"."favorites" FOR INSERT TO "authenticated" WITH CHECK (("public"."is_admin"() OR "public"."is_client"() OR "public"."is_trainer"()));
+
+CREATE POLICY "Auth can read contact" ON "public"."contacts" FOR SELECT USING (true);
 
 CREATE POLICY "Auth can read evalphotos" ON "public"."evalphotos" FOR SELECT TO "authenticated" USING (true);
 
@@ -428,30 +540,33 @@ CREATE POLICY "Auth can read foods" ON "public"."foods" FOR SELECT TO "authentic
 
 CREATE POLICY "Auth can read measures" ON "public"."measures" FOR SELECT TO "authenticated" USING (true);
 
-CREATE POLICY "Auth can select profile" ON "public"."profiles" FOR SELECT TO "authenticated" USING (( ("public"."is_trainer"() AND (("trainer_id" = "auth"."uid"()) OR ("trainer_id" = NULL::"uuid"))) OR ("user_id" = "auth"."uid"())));
+CREATE POLICY "Auth cand read dietfood" ON "public"."dietfoods" FOR SELECT TO "authenticated" USING (true);
 
-CREATE POLICY "Auth cand read dietfood" ON "public"."dietfoods" FOR SELECT TO "authenticated" USING ((NOT "public"."is_user"()));
+CREATE POLICY "Auth or Trainer or Client can insert dietfood" ON "public"."dietfoods" FOR INSERT TO "authenticated" WITH CHECK (true);
 
-CREATE POLICY "Auth or Trainer can delete dietfood" ON "public"."dietfoods" FOR DELETE TO "authenticated" USING (( "public"."is_trainer"()));
+CREATE POLICY "Auth or Trainer or Proper can delete dietfood" ON "public"."dietfoods" FOR DELETE TO "authenticated" USING ("public"."is_trainer"());
 
-CREATE POLICY "Auth or Trainer cand edit dietfood" ON "public"."dietfoods" FOR UPDATE TO "authenticated" USING (( "public"."is_trainer"()));
+CREATE POLICY "Auth or Trainer or Proper can edit dietfood" ON "public"."dietfoods" FOR UPDATE TO "authenticated" USING (("public"."is_admin"() OR ("public"."is_trainer"() AND (( SELECT "diets"."trainer_id"
+   FROM "public"."diets"
+  WHERE ("diets"."id" = "dietfoods"."diet_id")
+ LIMIT 1) = "auth"."uid"())) OR (( SELECT "diets"."user_id"
+   FROM "public"."diets"
+  WHERE ("diets"."id" = "dietfoods"."diet_id")
+ LIMIT 1) = "auth"."uid"())));
 
-CREATE POLICY "Auth or Trainer or Client can insert dietfood" ON "public"."dietfoods" FOR INSERT TO "authenticated" WITH CHECK (( "public"."is_trainer"() OR ("public"."is_client"() AND (( SELECT "profiles"."trainer_id"
-   FROM "public"."profiles"
-  WHERE ("profiles"."user_id" = "auth"."uid"())
- LIMIT 1) <> NULL::"uuid"))));
+CREATE POLICY "Auth or suscribed can read routines" ON "public"."routines" FOR SELECT TO "authenticated" USING (("public"."is_admin"() OR ("trainer_id" IN ( SELECT "users"."trainer_id"
+   FROM "public"."users"
+  WHERE ("users"."id" = "auth"."uid"()))) OR ("trainer_id" = "auth"."uid"()) OR ("status" = 'Public'::"text")));
 
-CREATE POLICY "Auth or suscript can read routines" ON "public"."routines" FOR SELECT TO "authenticated" USING (((NOT "public"."is_user"()) OR ("trainer_id" IN ( SELECT "profiles"."trainer_id"
-   FROM "public"."profiles"
-  WHERE ("profiles"."user_id" = "auth"."uid"())))));
+CREATE POLICY "Enable read access for all users" ON "public"."contacts" TO "authenticated" USING ("public"."is_admin"());
 
-CREATE POLICY "Auth proper can insert contact" ON "public"."contacts" FOR INSERT TO "authenticated" WITH CHECK (("user_id" = "auth"."uid"()));
+CREATE POLICY "Proper can delete" ON "public"."favorites" FOR DELETE TO "authenticated" USING (("user_id" = "auth"."uid"()));
 
-CREATE POLICY "No one  can't delete contact" ON "public"."contacts" FOR DELETE USING (false);
+CREATE POLICY "Proper can read" ON "public"."favorites" FOR SELECT TO "authenticated" USING (("user_id" = "auth"."uid"()));
 
-CREATE POLICY "No one can't delete" ON "public"."profiles" FOR DELETE USING (false);
+CREATE POLICY "Restrict editing users" ON "public"."users" FOR UPDATE TO "authenticated" USING ((("id" = "auth"."uid"()) OR "public"."is_admin"()));
 
-CREATE POLICY "Some can edit profile" ON "public"."profiles" FOR UPDATE TO "authenticated" USING (( "public"."is_trainer"() OR ("user_id" = "auth"."uid"())));
+CREATE POLICY "Restrict read users" ON "public"."users" FOR SELECT USING ((("public"."is_trainer"() AND ("trainer_id" = "auth"."uid"())) OR ("id" = "auth"."uid"()) OR "public"."is_admin"() OR ("auth"."uid"() IS NULL)));
 
 CREATE POLICY "User can't edit measure" ON "public"."measures" FOR UPDATE TO "authenticated" USING ((NOT "public"."is_user"()));
 
@@ -469,13 +584,25 @@ ALTER TABLE "public"."evalphotos" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."evals" ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE "public"."favorites" ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE "public"."foods" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."measures" ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
-
 ALTER TABLE "public"."routines" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
+
+
+/* Create Bucket */
+
+insert into storage.buckets (id, name) values  ('zfit_storage', 'zfit_storage');
+
+
+/* Grant access for all */
+create policy "Public Access to Storage" ON "storage"."objects" WITH CHECK ((bucket_id = 'zfit_storage'));
+
 
 REVOKE USAGE ON SCHEMA "public" FROM PUBLIC;
 GRANT USAGE ON SCHEMA "public" TO "postgres";
@@ -483,9 +610,9 @@ GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
 
-GRANT ALL ON FUNCTION "public"."create_profile_and_contact"("name" "text", "email" "text", "password" "text", "user_id" "uuid") TO "anon";
-GRANT ALL ON FUNCTION "public"."create_profile_and_contact"("name" "text", "email" "text", "password" "text", "user_id" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."create_profile_and_contact"("name" "text", "email" "text", "password" "text", "user_id" "uuid") TO "service_role";
+GRANT ALL ON FUNCTION "public"."create_user_and_contact"("name" "text", "email" "text", "role" "text", "user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_user_and_contact"("name" "text", "email" "text", "role" "text", "user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_user_and_contact"("name" "text", "email" "text", "role" "text", "user_id" "uuid") TO "service_role";
 
 GRANT ALL ON FUNCTION "public"."is_admin"() TO "anon";
 GRANT ALL ON FUNCTION "public"."is_admin"() TO "authenticated";
@@ -503,6 +630,14 @@ GRANT ALL ON FUNCTION "public"."is_user"() TO "anon";
 GRANT ALL ON FUNCTION "public"."is_user"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."is_user"() TO "service_role";
 
+GRANT ALL ON FUNCTION "public"."remove_user"("user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."remove_user"("user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."remove_user"("user_id" "uuid") TO "service_role";
+
+GRANT ALL ON FUNCTION "public"."set_trainer_id"() TO "anon";
+GRANT ALL ON FUNCTION "public"."set_trainer_id"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."set_trainer_id"() TO "service_role";
+
 GRANT ALL ON TABLE "public"."contacts" TO "anon";
 GRANT ALL ON TABLE "public"."contacts" TO "authenticated";
 GRANT ALL ON TABLE "public"."contacts" TO "service_role";
@@ -514,6 +649,14 @@ GRANT ALL ON SEQUENCE "public"."contacts_id_seq" TO "service_role";
 GRANT ALL ON TABLE "public"."dietfoods" TO "anon";
 GRANT ALL ON TABLE "public"."dietfoods" TO "authenticated";
 GRANT ALL ON TABLE "public"."dietfoods" TO "service_role";
+
+GRANT ALL ON TABLE "public"."foods" TO "anon";
+GRANT ALL ON TABLE "public"."foods" TO "authenticated";
+GRANT ALL ON TABLE "public"."foods" TO "service_role";
+
+GRANT ALL ON TABLE "public"."dfview" TO "anon";
+GRANT ALL ON TABLE "public"."dfview" TO "authenticated";
+GRANT ALL ON TABLE "public"."dfview" TO "service_role";
 
 GRANT ALL ON SEQUENCE "public"."dieetfoods_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."dieetfoods_id_seq" TO "authenticated";
@@ -543,9 +686,13 @@ GRANT ALL ON SEQUENCE "public"."evals_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."evals_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."evals_id_seq" TO "service_role";
 
-GRANT ALL ON TABLE "public"."foods" TO "anon";
-GRANT ALL ON TABLE "public"."foods" TO "authenticated";
-GRANT ALL ON TABLE "public"."foods" TO "service_role";
+GRANT ALL ON TABLE "public"."favorites" TO "anon";
+GRANT ALL ON TABLE "public"."favorites" TO "authenticated";
+GRANT ALL ON TABLE "public"."favorites" TO "service_role";
+
+GRANT ALL ON SEQUENCE "public"."favorites_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."favorites_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."favorites_id_seq" TO "service_role";
 
 GRANT ALL ON SEQUENCE "public"."foods_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."foods_id_seq" TO "authenticated";
@@ -559,14 +706,6 @@ GRANT ALL ON SEQUENCE "public"."measures_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."measures_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."measures_id_seq" TO "service_role";
 
-GRANT ALL ON TABLE "public"."profiles" TO "anon";
-GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
-GRANT ALL ON TABLE "public"."profiles" TO "service_role";
-
-GRANT ALL ON SEQUENCE "public"."profiles_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."profiles_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."profiles_id_seq" TO "service_role";
-
 GRANT ALL ON TABLE "public"."routines" TO "anon";
 GRANT ALL ON TABLE "public"."routines" TO "authenticated";
 GRANT ALL ON TABLE "public"."routines" TO "service_role";
@@ -574,6 +713,10 @@ GRANT ALL ON TABLE "public"."routines" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."routines_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."routines_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."routines_id_seq" TO "service_role";
+
+GRANT ALL ON TABLE "public"."users" TO "anon";
+GRANT ALL ON TABLE "public"."users" TO "authenticated";
+GRANT ALL ON TABLE "public"."users" TO "service_role";
 
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES  TO "postgres";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES  TO "anon";
@@ -589,5 +732,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "service_role";
+
+
 
 RESET ALL;

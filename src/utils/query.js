@@ -57,7 +57,8 @@ export function useQuery(table = "none") {
       .from(table)
       .select(params.cols)
       .eq(key, value)
-      .single();
+      .limit(1)
+      .maybeSingle();
     return instance;
   };
 

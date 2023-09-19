@@ -1,102 +1,6 @@
 import { useRoutines, useNewRoutine } from "../../../src/utils/routines";
 import validate from "../validate";
 import supabase from "../../../src/utils/supabase";
-describe("useRoutines_function", () => {
-  // Tests that params and routines are initialized correctly
-  it("test_initialization", () => {
-    const { params, routines } = useRoutines();
-    expect(typeof params).toEqual("object");
-    expect(routines.value).toEqual([]);
-  });
-
-  // Tests that admin can get routines
-  it("Admin should get all routines", async () => {
-    await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_ADMIN_EMAIL,
-      password: import.meta.env.VITE_ADMIN_PASSWORD,
-    });
-    const { routines, getRoutines } = useRoutines();
-    const instance = await getRoutines();
-    expect(routines.value.length).toBeGreaterThan(0);
-  });
-
-  // Tests that trainer can get routines
-  it("Trainer could read proper or public routines", async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_TRAINER_EMAIL,
-      password: import.meta.env.VITE_TRAINER_PASSWORD,
-    });
-    const { routines, getRoutines } = useRoutines();
-    await getRoutines();
-    const isValid = routines.value.every(
-      (routine) => routine.status == "Public" || routine.user_id == user.id
-    );
-    expect(isValid).toBe(true);
-  });
-
-  // Tests that client can get routines
-  it("Client could read suscribed or public routines", async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_CLIENT_EMAIL,
-      password: import.meta.env.VITE_CLIENT_PASSWORD,
-    });
-    const loggedUser = await supabase
-      .from("users")
-      .select()
-      .eq("id", user.id)
-      .maybeSingle();
-    const { routines, getRoutines } = useRoutines();
-    await getRoutines();
-    const isValid = routines.value.every(
-      (routine) =>
-        routine.status == "Public" ||
-        routine.trainer_id == loggedUser.data.trainer_id
-    );
-    expect(isValid).toBe(true);
-  });
-
-  // Tests that user can get routines
-  it("User could read or public routines", async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_CLIENT_EMAIL,
-      password: import.meta.env.VITE_CLIENT_PASSWORD,
-    });
-    const { routines, getRoutines } = useRoutines();
-    await getRoutines();
-    const isValid = routines.value.every(
-      (routine) => routine.status == "Public"
-    );
-    expect(isValid).toBe(true);
-  });
-  // Tests that onSearch function clears routines array and calls getRoutines function
-  it("Admin sould search routine", async () => {
-    await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_ADMIN_EMAIL,
-      password: import.meta.env.VITE_ADMIN_PASSWORD,
-    });
-    const { routines, params, onSearch } = useRoutines();
-    params.search = "Cardio";
-    await onSearch();
-    expect(routines.value.length).toBeGreaterThan(0);
-  });
-
-  // Tests that findRoutine function works
-  it("Admin sould find routine", async () => {
-    await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_ADMIN_EMAIL,
-      password: import.meta.env.VITE_ADMIN_PASSWORD,
-    });
-    const { routine, findRoutine } = useRoutines();
-    await findRoutine("Fuerza Fundamental", "name");
-    expect(routine.value.id).toBeDefined();
-  });
-});
 
 describe("useNewRoutine_function", () => {
   const newRoutine = {};
@@ -221,7 +125,18 @@ describe("useNewRoutine_function", () => {
     expect(res.code).toBe("42501");
   });
 
-  //Tests that admin can delete routines
+  it("Admin should edit Routine", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    const { routine, updateRoutine } = useNewRoutine();
+    Object.assign(routine, newRoutine);
+    routine.id=1;
+    routine.name=routine.name+" edited";
+    const res = await updateRoutine(routine);
+    expect(res.id).toBe(routine.id);
+  });
 
   it("Test routines must be deleted", async () => {
     await supabase.auth.signInWithPassword({
@@ -240,3 +155,102 @@ describe("useNewRoutine_function", () => {
     expect(isEmpty).toEqual(true);
   });
 });
+
+describe("useRoutines_function", () => {
+  // Tests that params and routines are initialized correctly
+  it("test_initialization", () => {
+    const { params, routines } = useRoutines();
+    expect(typeof params).toEqual("object");
+    expect(routines.value).toEqual([]);
+  });
+
+  // Tests that admin can get routines
+  it("Admin should get all routines", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    const { routines, getRoutines } = useRoutines();
+    const instance = await getRoutines();
+    expect(routines.value.length).toBeGreaterThan(0);
+  });
+
+  // Tests that trainer can get routines
+  it("Trainer could read proper or public routines", async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_TRAINER_EMAIL,
+      password: import.meta.env.VITE_TRAINER_PASSWORD,
+    });
+    const { routines, getRoutines } = useRoutines();
+    await getRoutines();
+    const isValid = routines.value.every(
+      (routine) => routine.status == "Public" || routine.user_id == user.id
+    );
+    expect(isValid).toBe(true);
+  });
+
+  // Tests that client can get routines
+  it("Client could read suscribed or public routines", async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_CLIENT_EMAIL,
+      password: import.meta.env.VITE_CLIENT_PASSWORD,
+    });
+    const loggedUser = await supabase
+      .from("users")
+      .select()
+      .eq("id", user.id)
+      .maybeSingle();
+    const { routines, getRoutines } = useRoutines();
+    await getRoutines();
+    const isValid = routines.value.every(
+      (routine) =>
+        routine.status == "Public" ||
+        routine.trainer_id == loggedUser.data.trainer_id
+    );
+    expect(isValid).toBe(true);
+  });
+
+  // Tests that user can get routines
+  it("User could read or public routines", async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_CLIENT_EMAIL,
+      password: import.meta.env.VITE_CLIENT_PASSWORD,
+    });
+    const { routines, getRoutines } = useRoutines();
+    await getRoutines();
+    const isValid = routines.value.every(
+      (routine) => routine.status == "Public"
+    );
+    expect(isValid).toBe(true);
+  });
+  // Tests that onSearch function clears routines array and calls getRoutines function
+  it("Admin sould search routine", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    const { routines, params, onSearch } = useRoutines();
+    params.search = "edited";
+    await onSearch();
+    expect(routines.value.length).toBeGreaterThan(0);
+  });
+
+  // Tests that findRoutine function works
+  it("Admin should find routine", async () => {
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    const { routine, findRoutine } = useRoutines();
+    await findRoutine(1, "id");
+    expect(routine.value.id).toBeDefined();
+  });
+});
+
+

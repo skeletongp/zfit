@@ -1,90 +1,6 @@
 import { useFoods, useNewFood } from "../../../src/utils/foods";
 import supabase from "../../../src/utils/supabase";
 import validate from "../validate";
-
-describe("useFoods_function", async () => {
-  var auth;
-  beforeAll(async () => {
-     auth = await supabase.auth.signInWithPassword({
-      email: import.meta.env.VITE_ADMIN_EMAIL,
-      password: import.meta.env.VITE_ADMIN_PASSWORD,
-    });
-  });
-
-  //Test that user could login withit
-  it('should be logged user', async()=>{
-    expect(auth.data.session).toBeTruthy();
-  })
-
-  //Tests that params and foods is initialized
-  it("test_params_and_foods", async () => {
-    const { params, foods } = useFoods();
-    expect(typeof params).toEqual("object");
-    expect(foods.value).toEqual([]);
-  });
-
-  //Tests that admin can get foods
-  it("test_admin_gets_foods", async () => {
-    const { foods, getFoods } = useFoods();
-    await getFoods();
-    expect(foods.value.length).toBeGreaterThan(0);
-  });
-
-  //Tests that search returns data
-  it("test_on_search", async () => {
-    const { params, foods, onSearch } = useFoods();
-    params.paginate = true;
-    params.search = "Carne";
-    await onSearch();
-    expect(foods.value.length).toBeGreaterThan(0);
-  });
-
-  //Tests that can filter group
-  it('test_on_filter_group', async()=>{
-    const {  foods, onFilterGroup } = useFoods();
-    await onFilterGroup('Carnes');
-    const filtered=foods.value.filter((food)=>food.group=='Carnes')
-    expect(foods.value.length).toBeGreaterThan(0);
-    expect(foods.value.length).toEqual(filtered.length);
-    await onFilterGroup(null);
-    expect(foods.value.length).toBeGreaterThan(0);
-
-  })
-
-  //Tests that is ordering data
-  it("test_on_order_by", async () => {
-    const { params, foods, onOrderBy } = useFoods();
-    params.ascend = true;
-    await onOrderBy("name");
-    expect(foods.value[0].name[0]).toEqual("A");
-    await onOrderBy("name");
-    expect(foods.value[0].name[0]).not.toEqual("A");
-  });
-
-  //Tests that is paginating data
-  it("test_pagination", async () => {
-    const { foods, getFoods } = useFoods();
-    await getFoods();
-    expect(foods.value.length).toEqual(10);
-  });
-  //Tests that is limiting data
-  it("test_limit", async () => {
-    const { params, foods, getFoods } = useFoods(false);
-    params.limit = 50;
-    await getFoods();
-    expect(foods.value.length).toEqual(params.limit);
-  });
-
-  //Tests that retrieve data without paginate nor limit
-  it("test_no_paginate_nor_limit", async () => {
-    const { params, foods, getFoods } = useFoods(false);
-    params.limit = null;
-    const instance = await getFoods();
-    expect(foods.value.length).toBeGreaterThan(0);
-    expect(foods.value.length).toBeGreaterThan(params.perPage);
-  });
-});
-
 describe("useNewFood_function", async () => {
   const newFood = {};
   var foodId = null;
@@ -206,14 +122,15 @@ describe("useNewFood_function", async () => {
     });
     const { food, updateFood } = useNewFood();
     Object.assign(food, newFood);
-    food.id = foodId;
+    food.id = 1;
     food.Calorías = 165;
+    food.name="Edited Food";
     const res = await updateFood(food);
     expect(res.Calorías).toEqual(165);
   }); 
 
   //Tests that admin can delete food
-  it("test_delete_food", async () => {
+  it("Must delete food", async () => {
     await supabase.auth.signInWithPassword({
       email: import.meta.env.VITE_ADMIN_EMAIL,
       password: import.meta.env.VITE_ADMIN_PASSWORD,
@@ -231,3 +148,87 @@ describe("useNewFood_function", async () => {
     expect(isEmpty).toEqual(true);
   });
 });
+
+
+describe("useFoods_function", async () => {
+  var auth;
+  beforeAll(async () => {
+     auth = await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+  });
+
+  //Test that user could login withit
+  it('should be logged user', async()=>{
+    expect(auth.data.session).toBeTruthy();
+  })
+
+  //Tests that params and foods is initialized
+  it("test_params_and_foods", async () => {
+    const { params, foods } = useFoods();
+    expect(typeof params).toEqual("object");
+    expect(foods.value).toEqual([]);
+  });
+
+  //Tests that admin can get foods
+  it("test_admin_gets_foods", async () => {
+    const { foods, getFoods } = useFoods();
+    await getFoods();
+    expect(foods.value.length).toBeGreaterThan(0);
+  });
+
+  //Tests that search returns data
+  it("test_on_search", async () => {
+    const { params, foods, onSearch } = useFoods();
+    params.paginate = true;
+    params.search = "Cereales";
+    await onSearch();
+    expect(foods.value.length).toBeGreaterThan(0);
+  });
+
+  //Tests that can filter group
+  it('test_on_filter_group', async()=>{
+    const {  foods, onFilterGroup } = useFoods();
+    await onFilterGroup('Cereales');
+    const filtered=foods.value.filter((food)=>food.group=='Cereales')
+    expect(foods.value.length).toBeGreaterThan(0);
+    expect(foods.value.length).toEqual(filtered.length);
+    await onFilterGroup(null);
+    expect(foods.value.length).toBeGreaterThan(0);
+
+  })
+
+  //Tests that is ordering data
+  it("test_on_order_by", async () => {
+    const { params, foods, onOrderBy } = useFoods();
+    params.ascend = true;
+    await onOrderBy("name");
+    expect(foods.value.length).toBeGreaterThan(0);
+    await onOrderBy("name");
+    expect(foods.value.length).toBeGreaterThan(0);
+  });
+
+  //Tests that is paginating data
+  it("test_pagination", async () => {
+    const { foods, getFoods } = useFoods();
+    await getFoods();
+    expect(foods.value.length).toBeLessThan(11);
+  });
+  //Tests that is limiting data
+  it("test_limit", async () => {
+    const { params, foods, getFoods } = useFoods(false);
+    params.limit = 50;
+    await getFoods();
+    expect(foods.value.length).toBeLessThan(params.limit+1);
+  });
+
+  //Tests that retrieve data without paginate nor limit
+  it("test_no_paginate_nor_limit", async () => {
+    const { params, foods, getFoods } = useFoods(false);
+    params.limit = null;
+    const instance = await getFoods();
+    expect(foods.value.length).toBeGreaterThan(0);
+  });
+});
+

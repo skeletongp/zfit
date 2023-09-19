@@ -8,7 +8,7 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
-    "unit": "vitest --ui --dom",
+    "unit": "vitest --ui ",
     "coverage": "vitest run --coverage",
     "lint": "eslint"
   },

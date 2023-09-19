@@ -3,6 +3,12 @@ import supabase from "./supabase";
 import { loadingController } from "@ionic/vue";
 import { useQuery } from "@/utils/query";
 import { ref } from "vue";
+let basePathURL=""
+if (import.meta.NODE_ENV != "production") {
+  basePathURL = import.meta.env.VITE_LOCAL_STORAGE_BASE_URL;
+} else {
+  basePathURL = import.meta.env.STORAGE_BASE_URL;
+}
 const getPagination = (page, size) => {
   var from = page ? (page - 1) * size : 0;
   var to = size ? from + size - 1 : 9;
@@ -20,17 +26,18 @@ const upload = async (filePath, name, upsert = false) => {
   const loading = await ionLoading();
   var blob = filePath;
   blob = await getBlobFromPath(filePath);
-  const { data, error } = await supabase.storage
+  const instance = await supabase.storage
     .from("zfit_storage")
     .upload(name, blob, {
       upsert: upsert,
     });
-  if (error) {
+    console.log(instance)
+  if (instance.error) {
     loading.dismiss();
-    return error;
+    return instance.error;
   } else {
     loading.dismiss();
-    return import.meta.env.VITE_STORAGE_BASE_URL + name;
+    return basePathURL + name;
   }
 };
 

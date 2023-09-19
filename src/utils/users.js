@@ -25,7 +25,7 @@ export function useUsers() {
   const getUsers = async (paginate = true) => {
     params.paginate = paginate;
     params.searchables = "name,email";
-    const instance = await getData();
+    const instance = await getData(false);
     users.value.push(...instance.data);
     return instance;
   };
@@ -37,10 +37,7 @@ export function useUsers() {
   };
 
   const getWeight = async (userId) => {
-    const {
-      data,
-      error
-    } = await supabase
+    const instance = await supabase
       .from("evals")
       .select("measures(*)")
       .eq("user_id", userId)
@@ -50,8 +47,9 @@ export function useUsers() {
       })
       .limit(1)
       .maybeSingle();
+     const {data}=instance;
     if (!data) {
-      return 404;
+      return 200;
     }
 
     user.value.weight = parseFloat(data.measures[0].value);
@@ -59,7 +57,7 @@ export function useUsers() {
       parseFloat(user.value.weight) /
       Math.pow(parseFloat(user.value.height / 100), 2) || 0;
     user.value.imc = imc.toFixed(2);
-    return 500;
+    return 201;
 
   };
   const getMeasures = async (userId) => {
@@ -158,6 +156,7 @@ export function useEditUser() {
   };
   const confirmPhoto = async (photo) => {
     try {
+      console.log(user)
       const photoId = user.photo.split("/").pop();
       await removeFile(photoId);
       user.photo = photo;

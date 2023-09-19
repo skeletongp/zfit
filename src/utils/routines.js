@@ -69,8 +69,13 @@ export function useNewRoutine() {
     const res = await deleteData(field, value);
     return res;
   };
+  const updateRoutine = async () => {
+    const { updateData } = useQuery("routines");
+    const res = await updateData(routine);
+    return res;
+  };
   const resetRoutine=()=>{
     Object.keys(routine).forEach((key)=>routine[key]=null)
   }
-  return {routine, rules, saveRoutine, deleteRoutine, resetRoutine}
+  return {routine, rules, saveRoutine, deleteRoutine, resetRoutine, updateRoutine}
 }

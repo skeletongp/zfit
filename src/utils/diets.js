@@ -1,10 +1,11 @@
 import { ref, reactive } from "vue";
 import { useQuery } from "@/utils/query";
 import supabase from "@/utils/supabase";
-export function useDiet() {
-  const { params, getData } = useQuery("diets");
-  params.cols = "*, dietfoods(*)";
+export function useDiet(paginate = true) {
+  const { params, getData, findData } = useQuery("diets");
+  params.cols = "*, dfview(*)";
   const diets = ref([]);
+  const diet = ref(null);
 
   const getDiets = async (load = false) => {
     params.paginate = paginate;
@@ -20,11 +21,17 @@ export function useDiet() {
     return await getDiets(false);
   };
 
-  return { diets, params, getDiets, onSearch };
+  const findDiet=async(key, value)=>{
+    const instance= await findData(key, value);
+    diet.value=instance.data;
+    return instance;
+  }
+
+  return { diets, diet, params, getDiets, onSearch, findDiet };
 }
 
 export function useNewDiet() {
-  const { saveData, deleteData } = useQuery("diets");
+  const { saveData, deleteData, updateData } = useQuery("diets");
 
   const diet = reactive({
     name: null,
@@ -36,10 +43,10 @@ export function useNewDiet() {
     dietFoods: [],
   });
 
-  const dietFood=reactive({
+  const dietFood = reactive({
     cant: null,
     food_id: null,
-  })
+  });
   const validateFoods = async (_rule, value) => {
     if (!value || !Array.isArray(value) || value.length === 0) {
       return Promise.reject("Faltan alimentos");
@@ -49,15 +56,23 @@ export function useNewDiet() {
   };
 
   const rules = {};
-  const requireds = ["name", "goal","proteins","calories"];
+  const requireds = ["name", "goal", "proteins", "calories"];
   requireds.forEach((key) => {
     rules[key] = [{ required: true, message: "El campo es requerido" }];
   });
   rules.type = [
-    { type:"enum", enum: ["Desayuno","Almuerzo","Merienda","Cena"], message: "Valor inválido" },
+    {
+      type: "enum",
+      enum: ["Desayuno", "Almuerzo", "Merienda", "Cena"],
+      message: "Valor inválido",
+    },
   ];
   rules.privacy = [
-    { type:"enum", enum: ["public","private","secret"], message: "Valor inválido" },
+    {
+      type: "enum",
+      enum: ["public", "private", "secret"],
+      message: "Valor inválido",
+    },
   ];
   rules.dietFoods = [
     {
@@ -66,37 +81,39 @@ export function useNewDiet() {
     },
   ];
 
-  const rulesFoods ={
-    cant:[{required: true, message:"Requerid"}],
-    food_id:[{required: true, message:"Requerid"}],
-    
-  }
+  const rulesFoods = {
+    cant: [{ required: true, message: "Requerid" }],
+    food_id: [{ required: true, message: "Requerid" }],
+  };
 
   const saveDiet = async () => {
-    const dietToSave={};
-    Object.assign(dietToSave, diet)
+    const dietToSave = {};
+    Object.assign(dietToSave, diet);
     delete dietToSave.dietFoods;
     const res = await saveData(dietToSave);
+    console.log(res)
     await saveDietFoods(res.id);
     return res;
   };
+  const editDiet = async (dietData) => {
+    const res = await updateData(dietData);
+    return res;
+  };
 
-  const saveDietFoods=async(diet_id)=>{
+  const saveDietFoods = async (diet_id) => {
     const dietFoods = diet.dietFoods;
 
-    dietFoods.forEach(async(food)=>{
-      food.diet_id=diet_id;
-    })
-    const res=await supabase.from("dietfoods").upsert(dietFoods).select();
-    if(res.error){
-      throw res.error;
-    }
-  }
+    dietFoods.forEach(async (food) => {
+      food.diet_id = diet_id;
+    });
+    const res = await supabase.from("dietfoods").upsert(dietFoods).select();
+   
+  };
 
-  const deleteDiet=async(field, value)=>{
-    const res=await deleteData(field, value);
+  const deleteDiet = async (field, value) => {
+    const res = await deleteData(field, value);
     return res;
-  }
+  };
 
-  return {diet, rules, dietFood, rulesFoods, saveDiet, deleteDiet};
+  return { diet, rules, dietFood, rulesFoods, saveDiet, deleteDiet, editDiet };
 }

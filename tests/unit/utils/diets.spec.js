@@ -1,6 +1,7 @@
-import { useNewDiet } from "../../../src/utils/diets";
+import { useNewDiet, useDiet } from "../../../src/utils/diets";
 import supabase from "../../../src/utils/supabase";
 import validate from "../validate";
+
 
 describe("newDiet_function", () => {
   const newDiet = {};
@@ -83,11 +84,12 @@ describe("newDiet_function", () => {
     newDiet.dietFoods = [
       {
         cant: 3,
-        food_id: 14,
+        food_id: 1,
       },
     ];
     Object.assign(diet, newDiet);
     const res = await saveDiet();
+
     expect(res.id).toBeDefined();
     expect(res.trainer_id).not.toBeNull();
     expect(res.user_id).toBeNull();
@@ -102,11 +104,12 @@ describe("newDiet_function", () => {
     newDiet.dietFoods = [
       {
         cant: 3,
-        food_id: 14,
+        food_id: 1,
       },
     ];
     Object.assign(diet, newDiet);
     const res = await saveDiet();
+    dietId = res.id;
     expect(res.id).toBeDefined();
     expect(res.user_id).not.toBeNull();
   });
@@ -121,7 +124,7 @@ describe("newDiet_function", () => {
     newDiet.dietFoods = [
       {
         cant: 3,
-        food_id: 14,
+        food_id: 1,
       },
     ];
     Object.assign(diet, newDiet);
@@ -132,13 +135,77 @@ describe("newDiet_function", () => {
   });
 
   it("Admin must delete diets", async () => {
+
     const { deleteDiet } = useNewDiet();
     newDiet.privacy = "secret";
     await supabase.auth.signInWithPassword({
       email: import.meta.env.VITE_USER_EMAIL,
       password: import.meta.env.VITE_USER_PASSWORD,
     });
-    const res=await deleteDiet("name", newDiet.name);
-    expect(res.status).toBe(204)
+    const res = await deleteDiet("name", newDiet.name);
+    expect(res.status).toBe(204);
+  });
+
+
+
+  it("Must edit diet", async () => {
+    const { editDiet } = useNewDiet();
+    const { findDiet, diet } = useDiet();
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    await findDiet("id", dietId);
+    delete diet.value.dfview;
+    diet.value.calories=260;
+    const res=await editDiet(diet.value)
+    expect(res.calories).toBe(260);
   });
 });
+describe("useDiet_function", () => {
+  beforeEach(async () => {
+    await supabase.auth.signOut();
+  });
+
+  it("Diets must be an empty array", async () => {
+    const { diets } = useDiet();
+    expect(diets.value).toStrictEqual([]);
+  });
+  
+  it("Must get diets with foods", async () => {
+    const { diets, params, getDiets } = useDiet();
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_ADMIN_EMAIL,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    });
+    await getDiets();
+    expect(diets.value.length).toBeGreaterThan(0);
+    const hasFoods = diets.value.some((diet) => diet.dfview.length > 0);
+    expect(hasFoods).toBe(true);
+  });
+
+  it("Must search diets", async () => {
+    const { diets, params, onSearch } = useDiet();
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_CLIENT_EMAIL,
+      password: import.meta.env.VITE_CLIENT_PASSWORD,
+    });
+    params.search = "de";
+    await onSearch();
+    expect(diets.value.length).toBeGreaterThan(0);
+    const hasFoods = diets.value.some((diet) => diet.dfview.length > 0);
+    expect(hasFoods).toBe(true);
+  });
+
+  it("Must find diet by proteins", async () => {
+    const { findDiet, diet } = useDiet();
+    await supabase.auth.signInWithPassword({
+      email: import.meta.env.VITE_CLIENT_EMAIL,
+      password: import.meta.env.VITE_CLIENT_PASSWORD,
+    });
+    await findDiet("proteins", "12");
+    expect(diet.value).not.toBeNull();
+    expect(diet.value.id).toBeDefined();
+  });
+});
+

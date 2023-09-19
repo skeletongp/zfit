@@ -1,0 +1,1 @@
+ALTER TABLE "public"."diets" ADD COLUMN "prep" "text";

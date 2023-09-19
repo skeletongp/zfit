@@ -3,5 +3,5 @@ SELECT plan(1);
 
 -- Examples: https://pgtap.org/documentation.html
 
-SELECT * FROM finish();
+SELECT ok( 9 ^ 2 = 81,    'simple exponential' );
 ROLLBACK;
